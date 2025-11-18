@@ -98,6 +98,67 @@
   </table>
 </section>
 
+      <!-- Manage Drivers Modal -->
+      <div v-if="showDriversModal" class="modal-backdrop" @click.self="closeDriversModal">
+        <div class="modal max-w-2xl">
+          <h3 class="text-xl font-semibold mb-4">Manage Drivers — {{ currentCompany?.name }}</h3>
+          
+          <!-- Add Driver Form -->
+          <form @submit.prevent="handleAddDriver" class="mb-6">
+            <div class="flex gap-3">
+              <div class="field flex-1">
+                <label>Driver Name</label>
+                <input v-model="newDriverName" type="text" placeholder="Enter driver name" required />
+              </div>
+              <div class="field flex-1">
+                <label>Phone Number</label>
+                <input v-model="newDriverPhone" type="tel" placeholder="0241234567" required />
+              </div>
+              <div class="field flex-1">
+                <label>Car Number</label>
+                <input v-model="newDriverCar" type="text" placeholder="GW-1234-20" required />
+              </div>
+              <div class="field" style="padding-top: 26px;">
+                <button class="btn" type="submit" :disabled="isSubmitting">
+                  Add Driver
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Drivers List -->
+          <div class="mb-4">
+            <h4 class="font-semibold mb-3">Current Drivers ({{ (currentCompany?.drivers || []).length }})</h4>
+            <div class="divide-y border rounded-lg">
+              <div 
+                v-for="(driver, index) in (currentCompany?.drivers || [])" 
+                :key="index" 
+                class="py-3 px-4 flex justify-between items-center"
+              >
+                <div>
+                  <div class="font-medium">{{ driver.name }}</div>
+                  <div class="text-sm text-muted-foreground">{{ driver.phone }} · {{ driver.carNumber }}</div>
+                </div>
+                <button 
+                  class="btn secondary" 
+                  @click="removeDriver(index)"
+                  :disabled="isSubmitting"
+                >
+                  Remove
+                </button>
+              </div>
+              <div v-if="!(currentCompany?.drivers || []).length" class="py-4 px-4 text-center text-muted-foreground">
+                No drivers added yet
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-6">
+            <button class="btn" @click="closeDriversModal">Close</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Details Modal -->
 <div v-if="detailsItem" class="modal-backdrop" @click.self="detailsItem = null">
   <div class="modal max-w-4xl">
@@ -170,7 +231,7 @@ definePageMeta({
 });
 
 const { getTransactions, updateTransaction } = useTransactions();
-const { getCompanies, addCompany } = useCompanies();
+const { getCompanies, addCompany, updateCompany } = useCompanies();
 const { success, error } = useNotification();
 
 const transactions = ref([])
@@ -196,6 +257,11 @@ onMounted(async () => {
 
 const showAddCompany = ref(false);
 const detailsItem = ref(null);
+const showDriversModal = ref(false);
+const currentCompany = ref(null);
+const newDriverName = ref('');
+const newDriverPhone = ref('');
+const newDriverCar = ref('');
 
 const company = reactive({
   name: "",
@@ -279,5 +345,86 @@ function showCompanyDetails(c) {
     company: c.name, 
     transactions: companyTransactions 
   };
+}
+
+function openManageDrivers(company) {
+  currentCompany.value = { ...company };
+  if (!currentCompany.value.drivers) {
+    currentCompany.value.drivers = [];
+  }
+  newDriverName.value = '';
+  newDriverPhone.value = '';
+  newDriverCar.value = '';
+  showDriversModal.value = true;
+}
+
+function closeDriversModal() {
+  showDriversModal.value = false;
+  currentCompany.value = null;
+  newDriverName.value = '';
+  newDriverPhone.value = '';
+  newDriverCar.value = '';
+}
+
+async function handleAddDriver() {
+  if (!newDriverName.value.trim() || !newDriverPhone.value.trim() || !newDriverCar.value.trim()) {
+    error('Please enter driver name, phone number, and car number');
+    return;
+  }
+
+  isSubmitting.value = true;
+  try {
+    const updatedDrivers = [
+      ...(currentCompany.value.drivers || []),
+      { 
+        name: newDriverName.value.trim(), 
+        phone: newDriverPhone.value.trim(),
+        carNumber: newDriverCar.value.trim()
+      }
+    ];
+
+    await updateCompany(currentCompany.value.id, { drivers: updatedDrivers });
+
+    // Update local state
+    const companyIndex = companies.value.findIndex(c => c.id === currentCompany.value.id);
+    if (companyIndex > -1) {
+      companies.value[companyIndex].drivers = updatedDrivers;
+    }
+    currentCompany.value.drivers = updatedDrivers;
+
+    newDriverName.value = '';
+    newDriverPhone.value = '';
+    newDriverCar.value = '';
+    success('Driver added successfully!');
+  } catch (err) {
+    console.error(err);
+    error('Failed to add driver');
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+
+async function removeDriver(index) {
+  isSubmitting.value = true;
+  try {
+    const updatedDrivers = [...currentCompany.value.drivers];
+    updatedDrivers.splice(index, 1);
+
+    await updateCompany(currentCompany.value.id, { drivers: updatedDrivers });
+
+    // Update local state
+    const companyIndex = companies.value.findIndex(c => c.id === currentCompany.value.id);
+    if (companyIndex > -1) {
+      companies.value[companyIndex].drivers = updatedDrivers;
+    }
+    currentCompany.value.drivers = updatedDrivers;
+
+    success('Driver removed successfully!');
+  } catch (err) {
+    console.error(err);
+    error('Failed to remove driver');
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>

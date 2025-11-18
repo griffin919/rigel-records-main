@@ -17,26 +17,36 @@
         <div class="grid">
           <div class="field">
             <label>Select Company</label>
-            <select v-model="form.company" required :disabled="isSubmitting">
+            <select v-model="form.company" required :disabled="isSubmitting" @change="onCompanyChange">
               <option value="">-- Select company --</option>
               <option v-for="c in companies" :key="c.id" :value="c">{{ c.name }}</option>
             </select>
           </div>
 
           <div class="field">
-            <label>Driver Name</label>
-            <input v-model="form.driverName" type="text" placeholder="John Doe" required :disabled="isSubmitting" />
+            <label>Select Driver</label>
+            <select v-model="selectedDriver" required :disabled="isSubmitting || !form.company">
+              <option value="">-- Select driver --</option>
+              <option v-for="(driver, index) in availableDrivers" :key="index" :value="driver">
+                {{ driver.name }} ({{ driver.phone }}) - {{ driver.carNumber }}
+              </option>
+            </select>
+            <small class="field-hint" v-if="!form.company">Select a company first</small>
+            <small class="field-hint" v-else-if="!availableDrivers.length" style="color: #f59e0b;">
+              No drivers available. Contact admin to add drivers to this company.
+            </small>
           </div>
 
           <div class="field">
             <label>Phone Number</label>
-            <input v-model="form.phone" type="tel" placeholder="0241234567" required :disabled="isSubmitting" />
-            <small class="field-hint">Ghana format: 0XXXXXXXXX</small>
+            <input v-model="form.phone" type="tel" placeholder="0241234567" required :disabled="isSubmitting" readonly />
+            <small class="field-hint">Auto-filled from selected driver</small>
           </div>
 
           <div class="field">
             <label>Car Number</label>
-            <input v-model="form.carNumber" type="text" placeholder="GW-1234-20" required :disabled="isSubmitting" />
+            <input v-model="form.carNumber" type="text" placeholder="GW-1234-20" required :disabled="isSubmitting" readonly />
+            <small class="field-hint">Auto-filled from selected driver</small>
           </div>
 
           <div class="field">
@@ -136,6 +146,11 @@ const transactions = ref([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const searchQuery = ref('')
+const selectedDriver = ref('')
+const availableDrivers = computed(() => {
+  if (!form.company || !form.company.drivers) return [];
+  return form.company.drivers || [];
+})
 
 onMounted(async () => {
   isLoading.value = true
@@ -158,6 +173,27 @@ const form = reactive({
   fuelQuantity: null,
   cost: null
 })
+
+// Watch for driver selection changes
+watch(selectedDriver, (driver) => {
+  if (driver) {
+    form.driverName = driver.name;
+    form.phone = driver.phone;
+    form.carNumber = driver.carNumber || '';
+  } else {
+    form.driverName = '';
+    form.phone = '';
+    form.carNumber = '';
+  }
+})
+
+function onCompanyChange() {
+  // Reset driver selection when company changes
+  selectedDriver.value = '';
+  form.driverName = '';
+  form.phone = '';
+  form.carNumber = '';
+}
 
 // Validation
 const validatePhone = (phone) => {
@@ -231,6 +267,7 @@ function clearForm() {
   form.carNumber = ''
   form.fuelQuantity = null
   form.cost = null
+  selectedDriver.value = ''
 }
 // ✅ Add this right below clearForm()
 function formatDate(dt) {
