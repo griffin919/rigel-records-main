@@ -42,7 +42,8 @@
     </aside>
 
     <!-- Content slot -->
-    <slot />
+     <div style="width: 100%; padding: 20px;"> 
+    <slot /></div>
   </div>
 </template>
 

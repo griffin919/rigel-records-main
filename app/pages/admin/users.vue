@@ -1,6 +1,6 @@
 <template>
   <div>
-    <main class="container">
+    <div class="container">
       <h1>User Management</h1>
       <p class="subtitle">Manage admin and attendant accounts</p>
 
@@ -77,39 +77,39 @@
           <p>No users found</p>
         </div>
 
-        <table v-else class="users-table">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Display Name</th>
-              <th>Role</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in filteredUsers" :key="user.id">
-              <td>{{ user.email }}</td>
-              <td>{{ user.displayName }}</td>
-              <td>
-                <span class="badge" :class="user.role">{{ user.role }}</span>
-              </td>
-              <td>{{ formatDate(user.createdAt) }}</td>
-              <td>
-                <button 
-                  @click="handleDeleteUser(user)" 
-                  class="btn-delete"
-                  :disabled="user.id === currentUserId"
-                  title="Delete user"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <table v-else class="users-table users-mobile">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Display Name</th>
+      <th>Role</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="user in filteredUsers" :key="user.id">
+      <td data-label="Email">{{ user.email }}</td>
+      <td data-label="Name">{{ user.displayName }}</td>
+      <td data-label="Role">
+        <span class="badge" :class="user.role">{{ user.role }}</span>
+      </td>
+      <td data-label="Created">{{ formatDate(user.createdAt) }}</td>
+      <td data-label="Action">
+        <button 
+          @click="handleDeleteUser(user)" 
+          class="btn-delete"
+          :disabled="user.id === currentUserId"
+          title="Delete user"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
       </section>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -237,6 +237,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.container {
+  width:100%;
+}
 .subtitle {
   color: var(--muted);
   margin-top: -8px;
@@ -429,6 +432,53 @@ onMounted(() => {
   .users-table th,
   .users-table td {
     padding: 8px;
+  }
+}
+
+/* MOBILE VIEW FOR USER MANAGEMENT TABLE */
+@media (max-width: 768px) {
+
+  /* Hide table header */
+  .users-mobile thead {
+    display: none;
+  }
+
+  /* Each row becomes a card */
+  .users-mobile tbody tr {
+    display: block;
+    background: #ffffff;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  /* Cells stack vertically */
+  .users-mobile tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0 !important;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Remove last border */
+  .users-mobile tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Show labels on mobile */
+  .users-mobile tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #555;
+  }
+
+  /* Make delete button full-width */
+  .users-mobile .btn-delete {
+    width: auto;
+    margin-top: 0.6rem;
+    text-align: center;
   }
 }
 </style>
