@@ -47,7 +47,7 @@
                 <input v-model="company.phone" required />
               </div>
             </div>
-            <div class="flex gap-3 mt-6 justify-end">
+            <div class="form-actions">
               <button class="btn secondary" type="button" @click="closeAddCompany">
                 Cancel
               </button>
@@ -61,79 +61,99 @@
       </div>
 
       <!-- Companies List -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">All Companies</h3>
-          <div class="text-sm text-muted-foreground">{{ companies.length }} companies</div>
-        </div>
+      <section class="card companies-mobile">
+  <h3 class="text-xl font-semibold">All Companies ({{ companies.length }})</h3>
 
-        <div class="divide-y">
-          <div v-for="c in companies" :key="c.id" class="py-4 flex justify-between items-center">
-            <div>
-              <div class="font-semibold text-base">{{ c.name }}</div>
-              <div class="text-sm text-muted-foreground mt-1">
-                {{ c.contactPerson }} · {{ c.location }} · {{ c.phone }}
-              </div>
-            </div>
-            <button class="btn secondary" @click="showCompanyDetails(c)">
-              View Transactions
-            </button>
-          </div>
-        </div>
-      </section>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Company Name</th>
+        <th>Contact Person</th>
+        <th>Location</th>
+        <th>Phone</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr v-for="c in companies" :key="c.id">
+        <td data-label="Company">{{ c.name }}</td>
+        <td data-label="Contact">{{ c.contactPerson }}</td>
+        <td data-label="Location">{{ c.location }}</td>
+        <td data-label="Phone">{{ c.phone }}</td>
+
+        <td data-label="Action">
+          <button class="btn secondary" @click="showCompanyDetails(c)">
+            View Transactions
+          </button>
+        </td>
+      </tr>
+
+      <tr v-if="!companies.length">
+        <td colspan="5" class="text-center text-muted-foreground">
+          No companies found
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
 
       <!-- Details Modal -->
-      <div v-if="detailsItem" class="modal-backdrop" @click.self="detailsItem = null">
-        <div class="modal max-w-4xl">
-          <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
-          <div class="overflow-x-auto">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Driver</th>
-                  <th>Phone</th>
-                  <th>Car</th>
-                  <th>Qty</th>
-                  <th>Cost</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="t in detailsItem.transactions" :key="t.id">
-                  <td class="font-medium">{{ t.driverName }}</td>
-                  <td>{{ t.phone }}</td>
-                  <td>{{ t.carNumber }}</td>
-                  <td>{{ t.fuelQuantity }}L</td>
-                  <td class="font-semibold">GHS {{ t.cost }}</td>
-                  <td class="text-muted-foreground">{{ formatDate(t.createdAt) }}</td>
-                  <td>
-                    <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
-                      {{ t.paid ? "Paid" : "Unpaid" }}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      class="btn-small" 
-                      :class="t.paid ? 'btn-warning' : 'btn-success'"
-                      @click="togglePaidStatus(t)"
-                    >
-                      {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
-                    </button>
-                  </td>
-                </tr>
-                <tr v-if="!detailsItem.transactions.length">
-                  <td colspan="8" class="text-center text-muted-foreground">No transactions yet</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="flex justify-end mt-6">
-            <button class="btn" @click="detailsItem = null">Close</button>
-          </div>
-        </div>
-      </div>
+<div v-if="detailsItem" class="modal-backdrop" @click.self="detailsItem = null">
+  <div class="modal max-w-4xl">
+    <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
+
+    <div class="mobile-view">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Driver</th>
+            <th>Phone</th>
+            <th>Car</th>
+            <th>Qty</th>
+            <th>Cost</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr v-for="t in detailsItem.transactions" :key="t.id">
+            <td data-label="Driver" class="font-medium">{{ t.driverName }}</td>
+            <td data-label="Phone">{{ t.phone }}</td>
+            <td data-label="Car">{{ t.carNumber }}</td>
+            <td data-label="Qty">{{ t.fuelQuantity }}L</td>
+            <td data-label="Cost" class="font-semibold">GHS {{ t.cost }}</td>
+            <td data-label="Date">{{ formatDate(t.createdAt) }}</td>
+            <td data-label="Status">
+              <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
+                {{ t.paid ? "Paid" : "Unpaid" }}
+              </span>
+            </td>
+            <td data-label="Action">
+              <button 
+                class="btn-small" 
+                :class="t.paid ? 'btn-warning' : 'btn-success'"
+                @click="togglePaidStatus(t)"
+              >
+                {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+              </button>
+            </td>
+          </tr>
+
+          <tr v-if="!detailsItem.transactions.length">
+            <td colspan="8" class="text-center text-muted-foreground">No transactions yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-end mt-6">
+      <button class="btn" @click="detailsItem = null">Close</button>
+    </div>
+  </div>
+</div>
     </template>
   </main>
 </template>
