@@ -10,9 +10,21 @@ export const useCompanies = () => {
   }
 
   const addCompany = async (company) => {
-    const ref = await addDoc(collection($db, 'companies'), { ...company, createdAt: serverTimestamp() })
+    const ref = await addDoc(collection($db, 'companies'), { 
+      ...company, 
+      drivers: company.drivers || [],
+      createdAt: serverTimestamp() 
+    })
     return ref.id
   }
 
-  return { getCompanies, addCompany }
+  const updateCompany = async (id, updates) => {
+    const response = await $fetch(`/api/companies/${id}`, {
+      method: 'PUT',
+      body: updates
+    })
+    return response
+  }
+
+  return { getCompanies, addCompany, updateCompany }
 }
