@@ -47,7 +47,7 @@
                 <input v-model="company.phone" required />
               </div>
             </div>
-            <div class="flex gap-3 mt-6 justify-end">
+            <div class="form-actions">
               <button class="btn secondary" type="button" @click="closeAddCompany">
                 Cancel
               </button>
@@ -61,34 +61,42 @@
       </div>
 
       <!-- Companies List -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">All Companies</h3>
-          <div class="text-sm text-muted-foreground">{{ companies.length }} companies</div>
-        </div>
+      <section class="card companies-mobile">
+  <h3 class="text-xl font-semibold">All Companies ({{ companies.length }})</h3>
 
-        <div class="divide-y">
-          <div v-for="c in companies" :key="c.id" class="py-4 flex justify-between items-center">
-            <div class="flex-1">
-              <div class="font-semibold text-base">{{ c.name }}</div>
-              <div class="text-sm text-muted-foreground mt-1">
-                {{ c.contactPerson }} · {{ c.location }} · {{ c.phone }}
-              </div>
-              <div class="text-sm text-muted-foreground mt-1">
-                Drivers: {{ (c.drivers || []).length }}
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <button class="btn secondary" @click="openManageDrivers(c)">
-                Manage Drivers
-              </button>
-              <button class="btn secondary" @click="showCompanyDetails(c)">
-                View Transactions
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Company Name</th>
+        <th>Contact Person</th>
+        <th>Location</th>
+        <th>Phone</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr v-for="c in companies" :key="c.id">
+        <td data-label="Company">{{ c.name }}</td>
+        <td data-label="Contact">{{ c.contactPerson }}</td>
+        <td data-label="Location">{{ c.location }}</td>
+        <td data-label="Phone">{{ c.phone }}</td>
+
+        <td data-label="Action">
+          <button class="btn secondary" @click="showCompanyDetails(c)">
+            View Transactions
+          </button>
+        </td>
+      </tr>
+
+      <tr v-if="!companies.length">
+        <td colspan="5" class="text-center text-muted-foreground">
+          No companies found
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
 
       <!-- Manage Drivers Modal -->
       <div v-if="showDriversModal" class="modal-backdrop" @click.self="closeDriversModal">

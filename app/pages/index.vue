@@ -117,22 +117,28 @@
 
     <!-- Recent entries card -->
     <section class="card">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h3 class="text-xl font-semibold mb-1">Recent Entries</h3>
-          <p class="text-sm text-muted-foreground">{{ filteredTransactions.length }} of {{ transactions.length }} entries</p>
-        </div>
-        <div class="search-box">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Search entries..." 
-            class="search-input"
-          />
-        </div>
-      </div>
-      
-      <table class="table" v-if="recent.length">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h3 class="text-xl font-semibold mb-1">Recent Entries</h3>
+      <p class="text-sm text-muted-foreground">
+        {{ filteredTransactions.length }} of {{ transactions.length }} entries
+      </p>
+    </div>
+
+    <div class="search-box">
+      <input 
+        v-model="searchQuery" 
+        type="text" 
+        placeholder="Search entries..." 
+        class="search-input"
+      />
+    </div>
+  </div>
+
+  <!-- WRAPPER for v-if / v-else -->
+  <div>
+    <div class="mobile-view" v-if="recent.length">
+      <table class="table">
         <thead>
           <tr>
             <th>Company</th>
@@ -143,6 +149,7 @@
             <th>Date</th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="t in recent" :key="t.id">
             <td class="font-medium">{{ t.company }}</td>
@@ -154,11 +161,14 @@
           </tr>
         </tbody>
       </table>
+    </div>
 
-      <div v-else class="text-center py-8 text-muted-foreground">
-        {{ searchQuery ? 'No matching entries found.' : 'No entries yet.' }}
-      </div>
-    </section>
+    <!-- This now works because it's correctly paired with the v-if -->
+    <div v-else class="text-center py-8 text-muted-foreground">
+      {{ searchQuery ? 'No matching entries found.' : 'No entries yet.' }}
+    </div>
+  </div>
+</section>
   </main>
 </template>
 
