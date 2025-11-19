@@ -38,25 +38,70 @@
           </div>
 
           <div class="field">
-            <label>Phone Number</label>
-            <input v-model="form.phone" type="tel" placeholder="0241234567" required :disabled="isSubmitting" readonly />
-            <small class="field-hint">Auto-filled from selected driver</small>
-          </div>
-
-          <div class="field">
             <label>Car Number</label>
             <input v-model="form.carNumber" type="text" placeholder="GW-1234-20" required :disabled="isSubmitting" readonly />
             <small class="field-hint">Auto-filled from selected driver</small>
           </div>
 
           <div class="field">
-            <label>Fuel Quantity (L)</label>
-            <input v-model.number="form.fuelQuantity" type="number" step="0.1" min="0.1" required :disabled="isSubmitting" />
+            <label>Select Item</label>
+            <select v-model="form.selectedItem" required :disabled="isSubmitting">
+              <option value="">-- Select item --</option>
+              <option v-for="item in items" :key="item.id" :value="item">
+                {{ item.name }} ({{ item.unit }})
+              </option>
+            </select>
+            <div v-if="form.selectedItem" class="mt-2 inline-flex items-center gap-2 text-sm">
+              <span class="w-4 h-4 rounded border" :style="{ backgroundColor: form.selectedItem.color }"></span>
+              <span class="font-medium">{{ form.selectedItem.name }}</span>
+            </div>
+            <small class="field-hint" v-if="!items.length" style="color: #f59e0b;">
+              No items available. Contact admin to add items.
+            </small>
+          </div>
+
+          <div class="field">
+            <label>Quantity</label>
+            <input v-model.number="form.quantity" type="number" step="0.1" min="0.1" required :disabled="isSubmitting" :placeholder="form.selectedItem ? `Enter quantity in ${form.selectedItem.unit}` : 'Select item first'" />
+            <small class="field-hint" v-if="form.selectedItem">Unit: {{ form.selectedItem.unit }}</small>
           </div>
 
           <div class="field">
             <label>Cost (GHS)</label>
             <input v-model.number="form.cost" type="number" step="0.01" min="0.01" required :disabled="isSubmitting" />
+          </div>
+
+          <div class="field">
+            <label>Coupon Number (Optional)</label>
+            <input v-model="form.couponNumber" type="text" placeholder="Enter coupon number" :disabled="isSubmitting" />
+            <small class="field-hint">Some companies provide coupons to drivers</small>
+          </div>
+
+          <div class="field">
+            <label>Photo Evidence (Optional)</label>
+            <input 
+              type="file" 
+              accept="image/*" 
+              @change="handlePhotoUpload" 
+              :disabled="isSubmitting || isUploadingPhoto"
+              ref="photoInput"
+            />
+            <small class="field-hint">Upload photo of pump price and car presence</small>
+            <div v-if="isUploadingPhoto" class="mt-2 text-sm text-blue-600">
+              <span class="btn-spinner inline-block"></span>
+              Uploading photo...
+            </div>
+            <div v-if="form.photoURL" class="mt-2">
+              <img :src="form.photoURL" alt="Evidence photo" class="max-w-xs rounded border" />
+              <button 
+                type="button" 
+                class="text-sm text-red-600 mt-1" 
+                @click="removePhoto"
+                :disabled="isSubmitting"
+              >
+                Remove photo
+              </button>
+            </div>
           </div>
         </div>
 
@@ -92,6 +137,7 @@
           <tr>
             <th>Company</th>
             <th>Driver</th>
+            <th>Item</th>
             <th>Quantity</th>
             <th>Cost</th>
             <th>Date</th>
@@ -101,7 +147,8 @@
           <tr v-for="t in recent" :key="t.id">
             <td class="font-medium">{{ t.company }}</td>
             <td>{{ t.driverName }}</td>
-            <td>{{ t.fuelQuantity }}L</td>
+            <td>{{ t.itemName || 'Fuel' }}</td>
+            <td>{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</td>
             <td class="font-semibold">GHS {{ t.cost }}</td>
             <td class="text-muted-foreground">{{ formatDate(t.createdAt) }}</td>
           </tr>
@@ -119,6 +166,9 @@
 import { useCompanies } from '~/composables/useCompanies'
 import { useTransactions } from '~/composables/useTransactions'
 import { useNotification } from '~/composables/useNotification'
+import { useItems } from '~/composables/useItems'
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import { getStorage } from 'firebase/storage'
 
 definePageMeta({
   layout: 'default',
@@ -131,12 +181,16 @@ const { success, error } = useNotification()
 /* shared state */
 const companies = ref([])
 const { getCompanies } = useCompanies()
+const items = ref([])
+const { getItems } = useItems()
 
 const transactions = ref([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
+const isUploadingPhoto = ref(false)
 const searchQuery = ref('')
 const selectedDriver = ref('')
+const photoInput = ref(null)
 const availableDrivers = computed(() => {
   if (!form.company || !form.company.drivers) return [];
   return form.company.drivers || [];
@@ -146,6 +200,7 @@ onMounted(async () => {
   isLoading.value = true
   try {
     companies.value = await getCompanies()
+    items.value = await getItems()
     transactions.value = await getTransactions()
   } catch (err) {
     console.error(err)
@@ -160,8 +215,11 @@ const form = reactive({
   driverName: '',
   phone: '',
   carNumber: '',
-  fuelQuantity: null,
-  cost: null
+  selectedItem: '',
+  quantity: null,
+  cost: null,
+  couponNumber: '',
+  photoURL: ''
 })
 
 // Watch for driver selection changes
@@ -183,6 +241,50 @@ function onCompanyChange() {
   form.driverName = '';
   form.phone = '';
   form.carNumber = '';
+}
+
+// Photo upload handler
+async function handlePhotoUpload(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    error('Please upload an image file')
+    return
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    error('Image size must be less than 5MB')
+    return
+  }
+
+  isUploadingPhoto.value = true
+  try {
+    const storage = getStorage()
+    const timestamp = Date.now()
+    const filename = `transaction-photos/${timestamp}-${file.name}`
+    const fileRef = storageRef(storage, filename)
+    
+    await uploadBytes(fileRef, file)
+    const downloadURL = await getDownloadURL(fileRef)
+    
+    form.photoURL = downloadURL
+    success('Photo uploaded successfully!')
+  } catch (err) {
+    console.error('Upload error:', err)
+    error('Failed to upload photo. Please try again.')
+  } finally {
+    isUploadingPhoto.value = false
+  }
+}
+
+function removePhoto() {
+  form.photoURL = ''
+  if (photoInput.value) {
+    photoInput.value.value = ''
+  }
 }
 
 // Validation
@@ -209,8 +311,12 @@ const validateForm = () => {
     error('Invalid phone number format. Use Ghana format (e.g., 0241234567)')
     return false
   }
-  if (!form.fuelQuantity || form.fuelQuantity <= 0) {
-    error('Fuel quantity must be greater than 0')
+  if (!form.selectedItem) {
+    error('Please select an item')
+    return false
+  }
+  if (!form.quantity || form.quantity <= 0) {
+    error('Quantity must be greater than 0')
     return false
   }
   if (!form.cost || form.cost <= 0) {
@@ -232,8 +338,13 @@ async function submitEntry() {
       driverName: form.driverName,
       phone: form.phone,
       carNumber: form.carNumber,
-      fuelQuantity: form.fuelQuantity,
+      itemId: form.selectedItem.id,
+      itemName: form.selectedItem.name,
+      itemUnit: form.selectedItem.unit,
+      quantity: form.quantity,
       cost: form.cost,
+      couponNumber: form.couponNumber || '',
+      photoURL: form.photoURL || '',
       paid: false
     })
 
@@ -255,9 +366,15 @@ function clearForm() {
   form.driverName = ''
   form.phone = ''
   form.carNumber = ''
-  form.fuelQuantity = null
+  form.selectedItem = ''
+  form.quantity = null
   form.cost = null
+  form.couponNumber = ''
+  form.photoURL = ''
   selectedDriver.value = ''
+  if (photoInput.value) {
+    photoInput.value.value = ''
+  }
 }
 // ✅ Add this right below clearForm()
 function formatDate(dt) {

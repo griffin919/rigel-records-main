@@ -162,6 +162,7 @@
                   <th>Driver</th>
                   <th>Phone</th>
                   <th>Car</th>
+                  <th>Item</th>
                   <th>Qty</th>
                   <th>Cost</th>
                   <th>Date</th>
@@ -174,7 +175,8 @@
                   <td class="font-medium">{{ t.driverName }}</td>
                   <td>{{ t.phone }}</td>
                   <td>{{ t.carNumber }}</td>
-                  <td>{{ t.fuelQuantity }}L</td>
+                  <td>{{ t.itemName || 'Fuel' }}</td>
+                  <td>{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</td>
                   <td class="font-semibold">GHS {{ t.cost }}</td>
                   <td class="text-muted-foreground">{{ formatDate(t.createdAt) }}</td>
                   <td>
@@ -193,7 +195,7 @@
                   </td>
                 </tr>
                 <tr v-if="!detailsItem.transactions.length">
-                  <td colspan="8" class="text-center text-muted-foreground">No transactions yet</td>
+                  <td colspan="9" class="text-center text-muted-foreground">No transactions yet</td>
                 </tr>
               </tbody>
             </table>

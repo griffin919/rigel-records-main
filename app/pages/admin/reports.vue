@@ -106,8 +106,11 @@
                   <th>Driver</th>
                   <th>Phone</th>
                   <th>Car</th>
+                  <th>Item</th>
                   <th>Qty</th>
                   <th>Cost</th>
+                  <th>Coupon</th>
+                  <th>Photo</th>
                   <th>Date</th>
                   <th>Status</th>
                   <th>Action</th>
@@ -118,8 +121,16 @@
                   <td class="font-medium">{{ t.driverName }}</td>
                   <td>{{ t.phone }}</td>
                   <td>{{ t.carNumber }}</td>
-                  <td>{{ t.fuelQuantity }}L</td>
+                  <td>{{ t.itemName || 'Fuel' }}</td>
+                  <td>{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</td>
                   <td class="font-semibold">GHS {{ t.cost }}</td>
+                  <td>{{ t.couponNumber || '-' }}</td>
+                  <td>
+                    <a v-if="t.photoURL" :href="t.photoURL" target="_blank" class="text-blue-600 hover:underline text-sm">
+                      View Photo
+                    </a>
+                    <span v-else class="text-muted-foreground">-</span>
+                  </td>
                   <td class="text-muted-foreground">{{ formatDate(t.createdAt) }}</td>
                   <td>
                     <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
@@ -310,8 +321,12 @@ function exportCSV(rows, filename) {
     "Driver",
     "Phone",
     "CarNumber",
-    "FuelQuantity",
+    "Item",
+    "Quantity",
+    "Unit",
     "Cost",
+    "CouponNumber",
+    "PhotoURL",
     "CreatedAt",
     "Paid",
   ];
@@ -321,8 +336,12 @@ function exportCSV(rows, filename) {
       `"${r.driverName}"`,
       `"${r.phone}"`,
       `"${r.carNumber}"`,
-      r.fuelQuantity,
+      `"${r.itemName || 'Fuel'}"`,
+      r.quantity || r.fuelQuantity,
+      `"${r.itemUnit || 'L'}"`,
       r.cost,
+      `"${r.couponNumber || ''}"`,
+      `"${r.photoURL || ''}"`,
       `"${r.createdAt || ''}"`,
       r.paid ? "Paid" : "Unpaid",
     ].join(",")
