@@ -1,9 +1,8 @@
-// server/api/transactions.post.js
+// server/api/items.post.js
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { readBody } from 'h3'
 
-// Initialize Firebase safely (prevents re-initialization on hot reloads)
 const app = getApps().length
   ? getApp()
   : initializeApp({
@@ -21,34 +20,24 @@ const db = getFirestore(app)
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
-  // Validate minimal fields (quick guard)
-  if (!body.company || !body.driverName) {
+  // Validate minimal fields
+  if (!body.name || !body.unit) {
     event.res.statusCode = 400
-    return { error: "Missing required fields: company or driverName" }
+    return { error: "Missing required fields: name or unit" }
   }
 
-  // Build document, use server timestamp for createdAt
+  // Build document
   const doc = {
-    companyId: body.companyId,   
-    company: body.company,
-    driverName: body.driverName,
-    phone: body.phone || "",
-    carNumber: body.carNumber || "",
-    itemId: body.itemId || "",
-    itemName: body.itemName || "",
-    itemUnit: body.itemUnit || "",
-    quantity: body.quantity || body.fuelQuantity || 0,
-    fuelQuantity: body.fuelQuantity || body.quantity || 0, // Keep for backward compatibility
-    cost: body.cost || 0,
-    couponNumber: body.couponNumber || "",
-    photoURL: body.photoURL || "",
-    paid: !!body.paid,
+    name: body.name,
+    unit: body.unit,
+    color: body.color || "#3b82f6",
+    price: body.price || 0,
+    description: body.description || "",
     createdAt: serverTimestamp()
   }
 
-  const ref = await addDoc(collection(db, "transactions"), doc)
+  const ref = await addDoc(collection(db, "items"), doc)
   
   // Return with ISO string for immediate display
   return { id: ref.id, ...doc, createdAt: new Date().toISOString() }
 })
-

@@ -19,6 +19,7 @@
             <!-- Admin Navigation -->
             <template v-if="isAdmin">
               <NuxtLink to="/admin/companies" :class="{ active: isActive('/admin/companies') }">Companies</NuxtLink>
+              <NuxtLink to="/admin/items" :class="{ active: isActive('/admin/items') }">Inventory Items</NuxtLink>
               <NuxtLink to="/admin/reports" :class="{ active: isActive('/admin/reports') }">Entry Reports</NuxtLink>
               <NuxtLink to="/admin/users" :class="{ active: isActive('/admin/users') }">Users</NuxtLink>
               <NuxtLink to="/" :class="{ active: isActive('/') }">Attendant View</NuxtLink>

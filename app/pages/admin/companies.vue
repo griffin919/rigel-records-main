@@ -160,61 +160,59 @@
       </div>
 
       <!-- Details Modal -->
-<div v-if="detailsItem" class="modal-backdrop" @click.self="detailsItem = null">
-  <div class="modal max-w-4xl">
-    <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
-
-    <div class="mobile-view">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Driver</th>
-            <th>Phone</th>
-            <th>Car</th>
-            <th>Qty</th>
-            <th>Cost</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr v-for="t in detailsItem.transactions" :key="t.id">
-            <td data-label="Driver" class="font-medium">{{ t.driverName }}</td>
-            <td data-label="Phone">{{ t.phone }}</td>
-            <td data-label="Car">{{ t.carNumber }}</td>
-            <td data-label="Qty">{{ t.fuelQuantity }}L</td>
-            <td data-label="Cost" class="font-semibold">GHS {{ t.cost }}</td>
-            <td data-label="Date">{{ formatDate(t.createdAt) }}</td>
-            <td data-label="Status">
-              <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
-                {{ t.paid ? "Paid" : "Unpaid" }}
-              </span>
-            </td>
-            <td data-label="Action">
-              <button 
-                class="btn-small" 
-                :class="t.paid ? 'btn-warning' : 'btn-success'"
-                @click="togglePaidStatus(t)"
-              >
-                {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
-              </button>
-            </td>
-          </tr>
-
-          <tr v-if="!detailsItem.transactions.length">
-            <td colspan="8" class="text-center text-muted-foreground">No transactions yet</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="flex justify-end mt-6">
-      <button class="btn" @click="detailsItem = null">Close</button>
-    </div>
-  </div>
-</div>
+      <div v-if="detailsItem" class="modal-backdrop" @click.self="detailsItem = null">
+        <div class="modal max-w-4xl">
+          <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
+          <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Driver</th>
+                  <th>Phone</th>
+                  <th>Car</th>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Cost</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="t in detailsItem.transactions" :key="t.id">
+                  <td class="font-medium">{{ t.driverName }}</td>
+                  <td>{{ t.phone }}</td>
+                  <td>{{ t.carNumber }}</td>
+                  <td>{{ t.itemName || 'Fuel' }}</td>
+                  <td>{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</td>
+                  <td class="font-semibold">GHS {{ t.cost }}</td>
+                  <td class="text-muted-foreground">{{ formatDate(t.createdAt) }}</td>
+                  <td>
+                    <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
+                      {{ t.paid ? "Paid" : "Unpaid" }}
+                    </span>
+                  </td>
+                  <td>
+                    <button 
+                      class="btn-small" 
+                      :class="t.paid ? 'btn-warning' : 'btn-success'"
+                      @click="togglePaidStatus(t)"
+                    >
+                      {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="!detailsItem.transactions.length">
+                  <td colspan="9" class="text-center text-muted-foreground">No transactions yet</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex justify-end mt-6">
+            <button class="btn" @click="detailsItem = null">Close</button>
+          </div>
+        </div>
+      </div>
     </template>
   </main>
 </template>
