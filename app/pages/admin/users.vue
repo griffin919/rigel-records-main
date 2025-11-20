@@ -119,7 +119,7 @@ import { useAuth } from '~/composables/useAuth';
 import { useNotification } from '~/composables/useNotification';
 
 definePageMeta({
-  layout: 'default',
+  layout: 'admin',
   middleware: ['auth', 'admin']
 });
 
@@ -241,7 +241,7 @@ onMounted(() => {
   width:100%;
 }
 .subtitle {
-  color: var(--muted);
+  color: #6b7280;
   margin-top: -8px;
   margin-bottom: 24px;
 }
@@ -281,13 +281,13 @@ onMounted(() => {
 .form-group label {
   font-weight: 600;
   font-size: 14px;
-  color: var(--dark);
+  color: #111827;
 }
 
 .form-group input,
 .form-group select {
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
@@ -296,12 +296,12 @@ onMounted(() => {
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: #DD1D21;
 }
 
 .btn-primary {
   padding: 12px 24px;
-  background: var(--primary);
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
   color: white;
   border: none;
   border-radius: 8px;
@@ -315,7 +315,7 @@ onMounted(() => {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-dark);
+  opacity: 0.9;
 }
 
 .btn-primary:disabled {
@@ -330,7 +330,7 @@ onMounted(() => {
 .search-bar input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
 }
@@ -339,7 +339,7 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: var(--muted);
+  color: #6b7280;
 }
 
 .loading-state {
@@ -357,14 +357,14 @@ onMounted(() => {
 .users-table th {
   text-align: left;
   padding: 12px;
-  background: var(--bg);
+  background: #f9fafb;
   font-weight: 600;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid #e5e7eb;
 }
 
 .users-table td {
   padding: 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .badge {

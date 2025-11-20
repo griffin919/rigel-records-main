@@ -2,7 +2,9 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <div class="logo-large">R</div>
+        <div class="logo-large">
+          <FireIcon class="logo-icon" />
+        </div>
         <h1>Rigel Records</h1>
         <p class="subtitle">Fuel Management System</p>
       </div>
@@ -47,6 +49,7 @@
 <script setup>
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
+import { FireIcon } from '@heroicons/vue/24/outline'
 
 definePageMeta({
   layout: false,
@@ -70,13 +73,12 @@ async function handleLogin() {
   try {
     const result = await login(email.value, password.value)
     
-    console.log("result:",result.user?.role)
     if (result.success) {
       success(`Welcome back, ${result.user.displayName}!`)
       
-      // Let the auth middleware handle the redirect automatically
-      // Just trigger a navigation to trigger the middleware
-      window.location.href = result.user.role === 'admin' ? '/admin/companies' : '/'
+      // Redirect based on role
+      const redirectPath = result.user.role === 'admin' ? '/admin/companies' : '/'
+      await navigateTo(redirectPath, { replace: true })
     } else {
       error(result.error || 'Login failed. Please check your credentials.')
     }
@@ -95,7 +97,7 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, #FFC800 0%, #DD1D21 100%);
   padding: 20px;
 }
 
@@ -116,26 +118,33 @@ async function handleLogin() {
 .logo-large {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
   color: white;
   border-radius: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
-  font-weight: 900;
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(214, 40, 40, 0.3);
+  box-shadow: 0 8px 24px rgba(221, 29, 33, 0.3);
+}
+
+.logo-icon {
+  width: 3rem;
+  height: 3rem;
+  color: white;
 }
 
 .login-header h1 {
   margin: 0 0 8px 0;
-  color: var(--secondary);
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-size: 28px;
 }
 
 .login-header .subtitle {
-  color: var(--muted);
+  color: #6b7280;
   font-size: 14px;
   margin: 0;
 }
@@ -154,31 +163,31 @@ async function handleLogin() {
 
 .login-form label {
   font-weight: 600;
-  color: var(--primary);
+  color: #374151;
   font-size: 14px;
 }
 
 .login-form input {
   padding: 12px 16px;
-  border: 2px solid var(--soft);
-  border-radius: var(--radius);
+  border: 2px solid #e5e7eb;
+  border-radius: 0.375rem;
   font-size: 15px;
   transition: all 0.2s;
 }
 
 .login-form input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(214, 40, 40, 0.1);
+  border-color: #DD1D21;
+  box-shadow: 0 0 0 3px rgba(221, 29, 33, 0.1);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #c41e1e);
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
   color: white;
   font-weight: 600;
   font-size: 16px;
   padding: 14px;
-  border-radius: var(--radius);
+  border-radius: 0.375rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -187,7 +196,7 @@ async function handleLogin() {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(214, 40, 40, 0.4);
+  box-shadow: 0 8px 24px rgba(221, 29, 33, 0.4);
 }
 
 .btn-primary:disabled {
@@ -206,7 +215,7 @@ async function handleLogin() {
 }
 
 .hint {
-  color: var(--muted);
+  color: #6b7280;
   font-size: 13px;
   margin: 0;
 }

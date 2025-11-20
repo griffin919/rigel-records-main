@@ -19,36 +19,42 @@ const app = getApps().length
 const db = getFirestore(app)
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  try {
+    const body = await readBody(event)
 
-  // Validate minimal fields (quick guard)
-  if (!body.company || !body.driverName) {
-    event.res.statusCode = 400
-    return { error: "Missing required fields: company or driverName" }
+    // Validate minimal fields (quick guard)
+    if (!body.company || !body.driverName) {
+      event.node.res.statusCode = 400
+      return { error: "Missing required fields: company or driverName" }
+    }
+
+    // Build document, use server timestamp for createdAt
+    const doc = {
+      companyId: body.companyId,   
+      company: body.company,
+      driverName: body.driverName,
+      phone: body.phone || "",
+      carNumber: body.carNumber || "",
+      itemId: body.itemId || "",
+      itemName: body.itemName || "",
+      itemUnit: body.itemUnit || "",
+      quantity: body.quantity || body.fuelQuantity || 0,
+      fuelQuantity: body.fuelQuantity || body.quantity || 0, // Keep for backward compatibility
+      cost: body.cost || 0,
+      couponNumber: body.couponNumber || "",
+      photoURL: body.photoURL || "",
+      paid: !!body.paid,
+      createdAt: serverTimestamp()
+    }
+
+    const ref = await addDoc(collection(db, "transactions"), doc)
+    
+    // Return with ISO string for immediate display
+    return { id: ref.id, ...doc, createdAt: new Date().toISOString() }
+  } catch (error) {
+    console.error('Error adding transaction:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to add transaction', message: error.message }
   }
-
-  // Build document, use server timestamp for createdAt
-  const doc = {
-    companyId: body.companyId,   
-    company: body.company,
-    driverName: body.driverName,
-    phone: body.phone || "",
-    carNumber: body.carNumber || "",
-    itemId: body.itemId || "",
-    itemName: body.itemName || "",
-    itemUnit: body.itemUnit || "",
-    quantity: body.quantity || body.fuelQuantity || 0,
-    fuelQuantity: body.fuelQuantity || body.quantity || 0, // Keep for backward compatibility
-    cost: body.cost || 0,
-    couponNumber: body.couponNumber || "",
-    photoURL: body.photoURL || "",
-    paid: !!body.paid,
-    createdAt: serverTimestamp()
-  }
-
-  const ref = await addDoc(collection(db, "transactions"), doc)
-  
-  // Return with ISO string for immediate display
-  return { id: ref.id, ...doc, createdAt: new Date().toISOString() }
 })
 

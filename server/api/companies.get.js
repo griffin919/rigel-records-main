@@ -15,8 +15,14 @@ const app = getApps().length
 
 const db = getFirestore(app)
 
-export default defineEventHandler(async () => {
-  const snap = await getDocs(collection(db, "companies"))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+export default defineEventHandler(async (event) => {
+  try {
+    const snap = await getDocs(collection(db, "companies"))
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  } catch (error) {
+    console.error('Error fetching companies:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to fetch companies', message: error.message }
+  }
 })
 

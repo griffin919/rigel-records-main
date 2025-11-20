@@ -1,15 +1,12 @@
 ﻿<template>
-  <div class="layout">
-    <!-- Mobile menu toggle -->
-    <button class="mobile-toggle" @click="mobileOpen = !mobileOpen" v-if="isMobile">
-      <span>☰</span>
-      Menu
-    </button>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{ open: mobileOpen }" @click.self="mobileOpen=false">
+  <ClientOnly>
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
       <div class="brand">
-        <div class="logo">R</div>
+        <div class="logo">
+          <FireIcon class="logo-icon" />
+        </div>
         <h2>Rigel Records</h2>
       </div>
 
@@ -18,16 +15,30 @@
           <nav class="nav">
             <!-- Admin Navigation -->
             <template v-if="isAdmin">
-              <NuxtLink to="/admin/companies" :class="{ active: isActive('/admin/companies') }">Companies</NuxtLink>
-              <NuxtLink to="/admin/items" :class="{ active: isActive('/admin/items') }">Inventory Items</NuxtLink>
-              <NuxtLink to="/admin/reports" :class="{ active: isActive('/admin/reports') }">Entry Reports</NuxtLink>
-              <NuxtLink to="/admin/users" :class="{ active: isActive('/admin/users') }">Users</NuxtLink>
-              <NuxtLink to="/" :class="{ active: isActive('/') }">Attendant View</NuxtLink>
+              <NuxtLink to="/admin/companies" :class="{ active: isActive('/admin/companies') }">
+                <BuildingOfficeIcon class="nav-icon" />
+                Companies
+              </NuxtLink>
+              <NuxtLink to="/admin/reports" :class="{ active: isActive('/admin/reports') }">
+                <ChartBarIcon class="nav-icon" />
+                Entry Reports
+              </NuxtLink>
+              <NuxtLink to="/admin/settings" :class="{ active: isActive('/admin/settings') }">
+                <CogIcon class="nav-icon" />
+                Settings
+              </NuxtLink>
+              <NuxtLink to="/" :class="{ active: isActive('/') }">
+                <HomeIcon class="nav-icon" />
+                Attendant View
+              </NuxtLink>
             </template>
             
             <!-- Attendant Navigation -->
             <template v-else>
-              <NuxtLink to="/" :class="{ active: isActive('/') }">Dashboard</NuxtLink>
+              <NuxtLink to="/" :class="{ active: isActive('/') }">
+                <HomeIcon class="nav-icon" />
+                Dashboard
+              </NuxtLink>
             </template>
           </nav>
 
@@ -36,7 +47,10 @@
               <span class="user-email">{{ user?.displayName || user?.email }}</span>
               <span class="user-role">{{ isAdmin ? 'Admin' : 'Attendant' }}</span>
             </div>
-            <button class="btn-logout" @click="handleLogout">Logout</button>
+            <button class="btn-logout" @click="handleLogout">
+              <ArrowRightOnRectangleIcon class="logout-icon" />
+              Logout
+            </button>
           </div>
         </template>
       </ClientOnly>
@@ -44,37 +58,28 @@
 
     <!-- Content slot -->
      <div style="width: 100%; padding: 20px;"> 
-    <slot /></div>
-  </div>
+      <slot />
+    </div>
+    </div>
+  </ClientOnly>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useAuth } from "~/composables/useAuth";
 import { useNotification } from "~/composables/useNotification";
+import { 
+  FireIcon,
+  BuildingOfficeIcon,
+  ChartBarIcon,
+  HomeIcon,
+  ArrowRightOnRectangleIcon,
+  CogIcon
+} from '@heroicons/vue/24/outline'
 
-const mobileOpen = ref(false);
-const isMobile = ref(false);
 const { user, isAdmin, logout } = useAuth();
 const { success } = useNotification();
 const router = useRouter();
 const route = useRoute();
-
-const checkMobile = () => {
-  isMobile.value = window.innerWidth <= 880;
-  if (!isMobile.value) {
-    mobileOpen.value = false;
-  }
-};
-
-onMounted(() => {
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile);
-});
 
 function isActive(path) {
   return route.path === path;
@@ -90,27 +95,45 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.mobile-toggle {
-  display: none;
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 51;
-  background: var(--panel);
-  border: 1px solid var(--soft);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
+.logo {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  border-radius: 0.75rem;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(221, 29, 33, 0.2);
 }
 
-@media (max-width: 880px) {
-  .mobile-toggle {
-    display: flex;
-  }
+.logo-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: white;
+}
+
+.brand h2 {
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nav-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.nav a.active {
+  background: linear-gradient(135deg, rgba(255, 200, 0, 0.1), rgba(221, 29, 33, 0.1));
+  color: #DD1D21;
 }
 
 .user-info {
@@ -144,9 +167,18 @@ async function handleLogout() {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-logout:hover {
   background: rgba(255,255,255,0.3);
+}
+
+.logout-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 </style>

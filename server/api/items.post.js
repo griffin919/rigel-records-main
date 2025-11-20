@@ -18,26 +18,32 @@ const app = getApps().length
 const db = getFirestore(app)
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  try {
+    const body = await readBody(event)
 
-  // Validate minimal fields
-  if (!body.name || !body.unit) {
-    event.res.statusCode = 400
-    return { error: "Missing required fields: name or unit" }
+    // Validate minimal fields
+    if (!body.name || !body.unit) {
+      event.node.res.statusCode = 400
+      return { error: "Missing required fields: name or unit" }
+    }
+
+    // Build document
+    const doc = {
+      name: body.name,
+      unit: body.unit,
+      color: body.color || "#3b82f6",
+      price: body.price || 0,
+      description: body.description || "",
+      createdAt: serverTimestamp()
+    }
+
+    const ref = await addDoc(collection(db, "items"), doc)
+    
+    // Return with ISO string for immediate display
+    return { id: ref.id, ...doc, createdAt: new Date().toISOString() }
+  } catch (error) {
+    console.error('Error adding item:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to add item', message: error.message }
   }
-
-  // Build document
-  const doc = {
-    name: body.name,
-    unit: body.unit,
-    color: body.color || "#3b82f6",
-    price: body.price || 0,
-    description: body.description || "",
-    createdAt: serverTimestamp()
-  }
-
-  const ref = await addDoc(collection(db, "items"), doc)
-  
-  // Return with ISO string for immediate display
-  return { id: ref.id, ...doc, createdAt: new Date().toISOString() }
 })

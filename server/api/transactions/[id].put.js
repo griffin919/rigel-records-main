@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   if (!id) {
-    event.res.statusCode = 400
+    event.node.res.statusCode = 400
     return { error: "Transaction ID is required" }
   }
 
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     // Check if document exists
     const docSnap = await getDoc(docRef)
     if (!docSnap.exists()) {
-      event.res.statusCode = 404
+      event.node.res.statusCode = 404
       return { error: "Transaction not found" }
     }
 
@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
     return { success: true, id, updates }
   } catch (error) {
     console.error('Error updating transaction:', error)
-    event.res.statusCode = 500
-    return { error: "Failed to update transaction" }
+    event.node.res.statusCode = 500
+    return { error: "Failed to update transaction", message: error.message }
   }
 })

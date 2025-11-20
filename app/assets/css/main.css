@@ -213,10 +213,6 @@ body {
   background: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  margin-top: 15px;
-  
-  /* 👇 This creates the spacing */
-  margin-right: 20px;
 }
 
 .btn:hover {
@@ -242,6 +238,18 @@ body {
 .btn.ghost:hover {
   background: hsl(var(--accent) / 0.1);
 }
+
+/* Danger button variant */
+.btn.danger,
+.btn-danger {
+  background: linear-gradient(to right, #f87171, #ef4444, #dc2626);
+}
+
+.btn.danger:hover,
+.btn-danger:hover {
+  background: linear-gradient(to bottom right, #ef4444, #991b1b);
+}
+
 /* company section save and clear buttons styling */
 .form-actions {
   display: flex;
@@ -349,6 +357,32 @@ body {
   justify-content: center;
   padding: 2.5rem;
   color: hsl(var(--muted-foreground));
+  min-height: 50vh;
+  width: 100%;
+}
+
+.loading-logo {
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: 1rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
 }
 
 .spinner {
@@ -537,6 +571,10 @@ body {
   .content {
     padding: 1rem;
   }
+
+  .main {
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -548,23 +586,13 @@ body {
   .grid {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
+
+  .main {
+    padding: 1rem;
+  }
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem; /* px-4 py-2.5 */
-  font-size: 0.875rem; /* text-sm */
-  font-weight: 500; /* font-medium */
-  color: #fff; /* text-white */
-  border: none;
-  border-radius: 6px; /* rounded-md */
-  cursor: pointer;
-  transition: all 0.2s ease;
-  outline: none;
-  
-}
+/* Remove duplicate .btn definition */
 
 /* Apply Filters Button — Blue Gradient */
 .btn.apply {

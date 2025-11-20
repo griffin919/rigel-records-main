@@ -1,12 +1,7 @@
 <script setup>
 definePageMeta({
-  middleware: ['auth', 'admin']
-});
-
-const router = useRouter();
-
-onMounted(() => {
-  router.push('/admin/reports');
+  middleware: ['auth', 'admin'],
+  redirect: '/admin/reports'
 });
 </script>
 

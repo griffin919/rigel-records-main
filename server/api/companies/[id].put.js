@@ -17,17 +17,23 @@ const app = getApps().length
 const db = getFirestore(app)
 
 export default defineEventHandler(async (event) => {
-  const id = event.context.params.id
-  const body = await readBody(event)
+  try {
+    const id = event.context.params.id
+    const body = await readBody(event)
 
-  if (!id) {
-    event.res.statusCode = 400
-    return { error: "Missing company ID" }
+    if (!id) {
+      event.node.res.statusCode = 400
+      return { error: "Missing company ID" }
+    }
+
+    // Update company document
+    const companyRef = doc(db, "companies", id)
+    await updateDoc(companyRef, body)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating company:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to update company', message: error.message }
   }
-
-  // Update company document
-  const companyRef = doc(db, "companies", id)
-  await updateDoc(companyRef, body)
-
-  return { success: true }
 })

@@ -5,8 +5,8 @@
     </div>
     
     <div v-if="isLoading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading items...</p>
+      <img src="/shell_logo.png" alt="Loading" class="loading-logo" />
+      <p class="loading-text">Loading...</p>
     </div>
     
     <template v-else>
@@ -132,7 +132,7 @@ import { useItems } from "~/composables/useItems";
 import { useNotification } from "~/composables/useNotification";
 
 definePageMeta({
-  layout: 'default',
+  layout: 'admin',
   middleware: ['auth', 'admin']
 });
 

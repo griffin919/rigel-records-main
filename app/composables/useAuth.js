@@ -10,12 +10,18 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 export const useAuth = () => {
   const user = useState('auth-user', () => null)
   const userRole = useState('auth-role', () => null)
+  const authInitialized = useState('auth-initialized', () => false)
   const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => userRole.value === 'admin')
   const isAttendant = computed(() => userRole.value === 'attendant')
 
   // Initialize auth state
   const initAuth = async () => {
+    // Prevent multiple initializations
+    if (authInitialized.value) {
+      return user.value
+    }
+    
     const { $auth, $db } = useNuxtApp()
     
     return new Promise((resolve) => {
@@ -36,6 +42,7 @@ export const useAuth = () => {
           user.value = null
           userRole.value = null
         }
+        authInitialized.value = true
         resolve(firebaseUser)
       })
     })
@@ -64,7 +71,6 @@ export const useAuth = () => {
         role: userData.role
       }
       userRole.value = userData.role
-      console.log("userRole.value",  userRole.value)
       
       return { success: true, user: user.value }
     } catch (error) {
@@ -113,7 +119,7 @@ export const useAuth = () => {
       return { success: true, uid: result.user.uid }
     } catch (error) {
       console.error('Register error:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error.message, message: error.message }
     }
   }
 

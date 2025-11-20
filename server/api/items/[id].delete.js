@@ -17,10 +17,21 @@ const app = getApps().length
 const db = getFirestore(app)
 
 export default defineEventHandler(async (event) => {
-  const id = event.context.params.id
+  try {
+    const id = event.context.params.id
 
-  const itemRef = doc(db, 'items', id)
-  await deleteDoc(itemRef)
+    if (!id) {
+      event.node.res.statusCode = 400
+      return { error: "Item ID is required" }
+    }
 
-  return { success: true }
+    const itemRef = doc(db, 'items', id)
+    await deleteDoc(itemRef)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting item:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to delete item', message: error.message }
+  }
 })

@@ -16,11 +16,17 @@ const app = getApps().length
 
 const db = getFirestore(app)
 
-export default defineEventHandler(async () => {
-  const snapshot = await getDocs(collection(db, 'items'))
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null
-  }))
+export default defineEventHandler(async (event) => {
+  try {
+    const snapshot = await getDocs(collection(db, 'items'))
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null
+    }))
+  } catch (error) {
+    console.error('Error fetching items:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to fetch items', message: error.message }
+  }
 })

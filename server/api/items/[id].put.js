@@ -18,11 +18,22 @@ const app = getApps().length
 const db = getFirestore(app)
 
 export default defineEventHandler(async (event) => {
-  const id = event.context.params.id
-  const body = await readBody(event)
+  try {
+    const id = event.context.params.id
+    const body = await readBody(event)
 
-  const itemRef = doc(db, 'items', id)
-  await updateDoc(itemRef, body)
+    if (!id) {
+      event.node.res.statusCode = 400
+      return { error: "Item ID is required" }
+    }
 
-  return { success: true }
+    const itemRef = doc(db, 'items', id)
+    await updateDoc(itemRef, body)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating item:', error)
+    event.node.res.statusCode = 500
+    return { error: 'Failed to update item', message: error.message }
+  }
 })
