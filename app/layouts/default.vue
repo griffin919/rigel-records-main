@@ -1,6 +1,10 @@
 ﻿<template>
   <ClientOnly>
+     <nav>
+        <HeaderBar/>
+      </nav>
     <div class="layout">
+      
       <!-- Sidebar -->
       <aside class="sidebar">
       <div class="brand">

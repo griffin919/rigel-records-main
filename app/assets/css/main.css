@@ -44,6 +44,48 @@ body {
   flex-direction: row;
 }
 
+/* LOGIN PAGE LOGO */
+.logo-large {
+  width: 80px;          /* adjust to the exact size you want */
+  height: 80px;
+  margin: 0 auto 1rem;  /* center + spacing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* SIDEBAR LOGO ICON */
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  overflow: hidden;        /* ensures icon stays inside */
+}
+
+.logo-icon img {
+  width: 65%;
+  height: 65%;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* Sidebar */
 .sidebar {
   width: 256px;
@@ -213,6 +255,7 @@ body {
   background: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  width: 100%;
 }
 
 .btn:hover {
@@ -685,3 +728,4 @@ body {
     margin-right: 1rem;
   }
 }
+

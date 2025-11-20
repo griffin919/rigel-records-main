@@ -5,7 +5,7 @@
       <div class="sidebar-header">
         <div class="logo">
           <span class="logo-icon">
-            <FireIcon class="icon" />
+            <img src="/shell_logo.png">
           </span>
           <span class="logo-text">Rigel</span>
         </div>
@@ -69,17 +69,7 @@
 
     <!-- Main Content Wrapper -->
     <div class="content-wrapper">
-      <!-- Header -->
-      <div class="header">
-        <div class="header-top">
-          <button class="icon-btn mobile-only" @click="toggleMobileMenu">
-            <Bars3Icon class="menu-icon" />
-          </button>
-          <div class="avatar">{{ userInitial }}</div>
-        </div>
-        <h1 class="greeting">Hi {{ userName }}!</h1>
-        <p class="sub-greeting">{{ greetingMessage }}</p>
-      </div>
+     
 
       <!-- Main Content -->
       <div class="main">
@@ -88,17 +78,20 @@
         <h2>Today's Summary</h2>
         <div class="summary-grid">
           <div class="summary-item">
-            <span class="icon">🏢</span>
+            <BuildingOfficeIcon class="nav-icon" />
+            <span class="nav-label"></span>
             <p class="number">{{ todaySummary.companies }}</p>
             <p class="label">Companies</p>
           </div>
           <div class="summary-item">
-            <span class="icon">🚚</span>
+            <TruckIcon class="nav-icon" />
+            <span class="nav-label"></span>
             <p class="number">{{ todaySummary.vehicles }}</p>
             <p class="label">Vehicles</p>
           </div>
           <div class="summary-item">
-            <span class="icon">💵</span>
+            <CreditCardIcon class="nav-icon" />
+            <span class="nav-label"></span>
             <p class="number">{{ todaySummary.amount }}</p>
             <p class="label">GHS</p>
           </div>
@@ -119,7 +112,7 @@
       <div class="transactions-list">
         <div v-for="transaction in filteredTransactions" :key="transaction.id" class="transaction-card">
           <div class="transaction-flex">
-            <div class="fuel-icon" :style="{ backgroundColor: getItemColor(transaction.itemName) }">⛽</div>
+            <div class="fuel-icon" :style="{ backgroundColor: getItemColor(transaction.itemName) }"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M5 20V5.616q0-.691.463-1.153T6.616 4h4.769q.69 0 1.153.463T13 5.616v6h.923q.667 0 1.141.474t.475 1.14v4.578q0 .54.383.924q.384.384.924.384t.924-.384t.384-.924v-6.816q-.225.144-.475.211q-.25.066-.525.066q-.792 0-1.338-.546t-.547-1.339q0-.684.409-1.206t1.076-.644l-2.408-2.407l.627-.627l3.43 3.408q.299.298.467.684t.168.792v8.424q0 .92-.634 1.556q-.635.636-1.554.636t-1.558-.636t-.638-1.556v-4.692q0-.27-.173-.443t-.442-.173H13V20zm1-9.5h6V5.616q0-.231-.192-.424T11.385 5h-4.77q-.23 0-.423.192T6 5.616zm11.154-.115q.425 0 .712-.288t.288-.712t-.288-.713t-.712-.288t-.713.288t-.287.712t.287.713t.713.288"/></svg></div>
             <div class="transaction-details">
               <h3>{{ transaction.company }}</h3>
               <div class="transaction-grid">
@@ -149,7 +142,7 @@
         </div>
 
         <div v-if="filteredTransactions.length === 0" class="no-transactions">
-          <span class="icon-large">⛽</span>
+          <span class="icon-large"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M5 20V5.616q0-.691.463-1.153T6.616 4h4.769q.69 0 1.153.463T13 5.616v6h.923q.667 0 1.141.474t.475 1.14v4.578q0 .54.383.924q.384.384.924.384t.924-.384t.384-.924v-6.816q-.225.144-.475.211q-.25.066-.525.066q-.792 0-1.338-.546t-.547-1.339q0-.684.409-1.206t1.076-.644l-2.408-2.407l.627-.627l3.43 3.408q.299.298.467.684t.168.792v8.424q0 .92-.634 1.556q-.635.636-1.554.636t-1.558-.636t-.638-1.556v-4.692q0-.27-.173-.443t-.442-.173H13V20zm1-9.5h6V5.616q0-.231-.192-.424T11.385 5h-4.77q-.23 0-.423.192T6 5.616zm11.154-.115q.425 0 .712-.288t.288-.712t-.288-.713t-.712-.288t-.713.288t-.287.712t.287.713t.713.288"/></svg></span>
           <p>No transactions yet</p>
           <p>Tap the + button to add a transaction</p>
         </div>
@@ -310,8 +303,11 @@ import {
   PlusIcon,
   XMarkIcon,
   CogIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  CreditCardIcon,
+  TruckIcon
 } from '@heroicons/vue/24/outline'
+import { FunnelIcon } from '@heroicons/vue/16/solid'
 
 definePageMeta({
   layout: 'default',
@@ -882,15 +878,16 @@ const todaySummary = computed(() => {
 }
 
 .summary-grid { 
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  justify-content: space-between;
   gap: 0.75rem; 
 }
 
 .summary-item { 
   background: rgba(255,255,255,0.2); 
+  width:32%;
   border-radius: 1rem; 
-  padding: 1rem; 
+  padding: 0.5rem; 
   backdrop-filter: blur(10px); 
   text-align: center;
   border: 1px solid rgba(255,255,255,0.3);
@@ -903,13 +900,13 @@ const todaySummary = computed(() => {
 }
 
 .summary-item .number { 
-  font-size: 1.75rem; 
+  font-size: 0.7rem; 
   font-weight: bold; 
   margin: 0.25rem 0;
 }
 
 .summary-item .label { 
-  font-size: 0.75rem; 
+  font-size: 0.65rem; 
   opacity: 0.9; 
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1302,9 +1299,6 @@ const todaySummary = computed(() => {
   }
 
   /* Adjust content wrapper for sidebar */
-  .content-wrapper {
-    margin-left: 16rem;
-  }
 
   /* Hide mobile menu button */
   .mobile-only {
@@ -1346,7 +1340,97 @@ const todaySummary = computed(() => {
   }
 
   .summary-item .number {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+  }
+}
+
+/* --------------------------------------------- */
+/* DESKTOP VIEW (Large Screens)                  */
+/* --------------------------------------------- */
+@media (min-width: 1024px) {
+
+  /* Show Sidebar on Desktop */
+  .sidebar {
+    display: flex;
+  }
+
+  /* Hide Mobile Bottom Nav */
+  .bottom-nav {
+    display: none;
+  }
+
+  /* Push content to the right (because of sidebar) */
+  .content-wrapper {
+    padding-bottom: 2rem; /* remove big mobile padding */
+  }
+
+  /* Header looks cleaner on desktop */
+  .header {
+    padding: 1.25rem 2rem;
+  }
+
+  /* Remove mobile-only elements */
+  .mobile-only {
+    display: none !important;
+  }
+
+  /* Main content should stretch wider */
+  .main {
+    max-width: 70rem; /* make it wider for desktop */
+    padding: 2rem 3rem;
+  }
+
+  /* Summary card on desktop */
+  .summary-card {
+    border-radius: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  /* Search bar spacing improved */
+  .search-bar {
+    margin-bottom: 2rem;
+  }
+
+  /* Transactions layout (optional enhancement) */
+  .transactions-list {
+    gap: 1.25rem;
+  }
+
+  .transaction-card {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+
+  .sidebar {
+    display: flex;
+  }
+
+  .bottom-nav {
+    display: none;
+  }
+
+  /* FIX 1: Make content sit flush next to sidebar */
+  .content-wrapper {
+    width: auto;
+  }
+
+  /* FIX 2: Remove center auto-margin on large screens */
+  .main {
+    max-width: none;
+    margin: 0;              /* removes the huge gap */
+    padding: 2rem 2rem;      /* reduce padding further if you want */
+  }
+
+  /* FIX 3: Reduce header padding too if you want tighter layout */
+  .header {
+    padding: 1rem 2rem;
   }
 }
 </style>
