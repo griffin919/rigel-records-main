@@ -5,7 +5,7 @@
     </div>
     
     <div v-if="isLoading" class="loading-state">
-      <img src="/shell_logo.png" alt="Loading" class="loading-logo" />
+      <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
     
@@ -56,47 +56,57 @@
               </div>
             </div>
 
-            <div v-if="companyTransactions.length" class="overflow-x-auto">
-              <table class="table transactions-mobile">
-                <thead>
-                  <tr>
-                    <th>Driver</th>
-                    <th>Phone</th>
-                    <th>Car</th>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Cost</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="t in companyTransactions" :key="t.id">
-                    <td data-label="Driver" class="font-medium">{{ t.driverName }}</td>
-                    <td data-label="Phone">{{ t.phone }}</td>
-                    <td data-label="Car">{{ t.carNumber }}</td>
-                    <td data-label="Item">{{ t.itemName || 'Fuel' }}</td>
-                    <td data-label="Qty">{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</td>
-                    <td data-label="Cost" class="font-semibold">GHS {{ t.cost }}</td>
-                    <td data-label="Date" class="text-muted-foreground">{{ formatDate(t.createdAt) }}</td>
-                    <td data-label="Status">
-                      <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
-                        {{ t.paid ? "Paid" : "Unpaid" }}
-                      </span>
-                    </td>
-                    <td data-label="Action">
-                      <button 
-                        class="btn-small" 
-                        :class="t.paid ? 'btn-warning' : 'btn-success'"
-                        @click="togglePaidStatus(t)"
-                      >
-                        {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div v-if="companyTransactions.length" class="responsive-table">
+              <div v-for="t in companyTransactions" :key="t.id" class="table-row">
+                <div class="table-cell">
+                  <div class="cell-label">Driver</div>
+                  <div class="cell-value font-medium">{{ t.driverName }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Phone</div>
+                  <div class="cell-value">{{ t.phone }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Car</div>
+                  <div class="cell-value">{{ t.carNumber }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Item</div>
+                  <div class="cell-value">{{ t.itemName || 'Fuel' }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Qty</div>
+                  <div class="cell-value">{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Cost</div>
+                  <div class="cell-value font-semibold">GHS {{ t.cost }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Date</div>
+                  <div class="cell-value text-muted-foreground text-sm">{{ formatDate(t.createdAt) }}</div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Status</div>
+                  <div class="cell-value">
+                    <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
+                      {{ t.paid ? "Paid" : "Unpaid" }}
+                    </span>
+                  </div>
+                </div>
+                <div class="table-cell">
+                  <div class="cell-label">Action</div>
+                  <div class="cell-value">
+                    <button 
+                      class="btn-small" 
+                      :class="t.paid ? 'btn-warning' : 'btn-success'"
+                      @click="togglePaidStatus(t)"
+                    >
+                      {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div v-else class="empty-state">
@@ -610,40 +620,6 @@ async function removeDriver(index) {
   .btn-danger-small {
     width: 100%;
     justify-content: center;
-  }
-
-  /* Mobile view for transactions table */
-  .transactions-mobile thead {
-    display: none;
-  }
-
-  .transactions-mobile tbody tr {
-    display: block;
-    background: #ffffff;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    border: 1px solid #e5e7eb;
-  }
-
-  .transactions-mobile tbody td {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.6rem 0 !important;
-    font-size: 14px;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  .transactions-mobile tbody td:last-child {
-    border-bottom: none;
-    padding-top: 1rem !important;
-  }
-
-  .transactions-mobile tbody td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #6b7280;
   }
 }
 </style>

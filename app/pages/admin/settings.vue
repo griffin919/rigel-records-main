@@ -5,7 +5,7 @@
     </div>
     
     <div v-if="isLoading" class="loading-state">
-      <img src="/shell_logo.png" alt="Loading" class="loading-logo" />
+      <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
     
@@ -193,61 +193,7 @@
 
           <!-- Items List -->
           <section class="card">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="section-title">Inventory Items</h2>
-              <button class="btn" @click="openAddItem">
-                <PlusIcon class="btn-icon" />
-                Add Item
-              </button>
-            </div>
-
-            <div v-if="items.length" class="overflow-x-auto">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Item Name</th>
-                    <th>Color</th>
-                    <th>Unit</th>
-                    <th>Price (GHS)</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in items" :key="item.id">
-                    <td class="font-semibold">
-                      <span class="inline-flex items-center gap-2">
-                        <span class="w-4 h-4 rounded" :style="{ backgroundColor: item.color || '#666' }"></span>
-                        {{ item.name }}
-                      </span>
-                    </td>
-                    <td>
-                      <span class="inline-flex items-center gap-2">
-                        <span class="w-6 h-6 rounded border" :style="{ backgroundColor: item.color || '#666' }"></span>
-                        {{ item.color || '-' }}
-                      </span>
-                    </td>
-                    <td>{{ item.unit }}</td>
-                    <td>{{ item.price ? `GHS ${item.price.toFixed(2)}` : 'Variable' }}</td>
-                    <td class="text-muted-foreground">{{ item.description || '-' }}</td>
-                    <td>
-                      <div class="flex gap-2">
-                        <button class="btn-small" @click="openEditItem(item)">
-                          Edit
-                        </button>
-                        <button class="btn-small btn-danger" @click="handleDeleteItem(item)">
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div v-else class="text-center py-8 text-muted-foreground">
-              No items yet. Click "Add Item" to create your first item.
-            </div>
+            <Items />
           </section>
         </div>
       </div>

@@ -5,60 +5,7 @@
       </nav>
     <div class="layout">
       
-      <!-- Sidebar -->
-      <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">
-          <FireIcon class="logo-icon" />
-        </div>
-        <h2>Rigel Records</h2>
-      </div>
-
-      <ClientOnly placeholder="Loading navigation...">
-        <template #default>
-          <nav class="nav">
-            <!-- Admin Navigation -->
-            <template v-if="isAdmin">
-              <NuxtLink to="/admin/companies" :class="{ active: isActive('/admin/companies') }">
-                <BuildingOfficeIcon class="nav-icon" />
-                Companies
-              </NuxtLink>
-              <NuxtLink to="/admin/reports" :class="{ active: isActive('/admin/reports') }">
-                <ChartBarIcon class="nav-icon" />
-                Entry Reports
-              </NuxtLink>
-              <NuxtLink to="/admin/settings" :class="{ active: isActive('/admin/settings') }">
-                <CogIcon class="nav-icon" />
-                Settings
-              </NuxtLink>
-              <NuxtLink to="/" :class="{ active: isActive('/') }">
-                <HomeIcon class="nav-icon" />
-                Attendant View
-              </NuxtLink>
-            </template>
-            
-            <!-- Attendant Navigation -->
-            <template v-else>
-              <NuxtLink to="/" :class="{ active: isActive('/') }">
-                <HomeIcon class="nav-icon" />
-                Dashboard
-              </NuxtLink>
-            </template>
-          </nav>
-
-          <div class="footer">
-            <div class="user-info">
-              <span class="user-email">{{ user?.displayName || user?.email }}</span>
-              <span class="user-role">{{ isAdmin ? 'Admin' : 'Attendant' }}</span>
-            </div>
-            <button class="btn-logout" @click="handleLogout">
-              <ArrowRightOnRectangleIcon class="logout-icon" />
-              Logout
-            </button>
-          </div>
-        </template>
-      </ClientOnly>
-    </aside>
+   
 
     <!-- Content slot -->
      <div style="width: 100%; padding: 20px;"> 

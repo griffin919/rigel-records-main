@@ -77,37 +77,41 @@
           <p>No users found</p>
         </div>
 
-        <table v-else class="users-table users-mobile">
-  <thead>
-    <tr>
-      <th>Email</th>
-      <th>Display Name</th>
-      <th>Role</th>
-      <th>Created</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="user in filteredUsers" :key="user.id">
-      <td data-label="Email">{{ user.email }}</td>
-      <td data-label="Name">{{ user.displayName }}</td>
-      <td data-label="Role">
-        <span class="badge" :class="user.role">{{ user.role }}</span>
-      </td>
-      <td data-label="Created">{{ formatDate(user.createdAt) }}</td>
-      <td data-label="Action">
-        <button 
-          @click="handleDeleteUser(user)" 
-          class="btn-delete"
-          :disabled="user.id === currentUserId"
-          title="Delete user"
-        >
-          Delete
-        </button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+        <div v-else class="responsive-table">
+          <div v-for="user in filteredUsers" :key="user.id" class="table-row">
+            <div class="table-cell">
+              <div class="cell-label">Email</div>
+              <div class="cell-value">{{ user.email }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Display Name</div>
+              <div class="cell-value">{{ user.displayName }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Role</div>
+              <div class="cell-value">
+                <span class="badge" :class="user.role">{{ user.role }}</span>
+              </div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Created</div>
+              <div class="cell-value">{{ formatDate(user.createdAt) }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Actions</div>
+              <div class="cell-value">
+                <button 
+                  @click="handleDeleteUser(user)" 
+                  class="btn-delete"
+                  :disabled="user.id === currentUserId"
+                  title="Delete user"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   </div>
@@ -423,62 +427,6 @@ onMounted(() => {
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
-  }
-
-  .users-table {
-    font-size: 13px;
-  }
-
-  .users-table th,
-  .users-table td {
-    padding: 8px;
-  }
-}
-
-/* MOBILE VIEW FOR USER MANAGEMENT TABLE */
-@media (max-width: 768px) {
-
-  /* Hide table header */
-  .users-mobile thead {
-    display: none;
-  }
-
-  /* Each row becomes a card */
-  .users-mobile tbody tr {
-    display: block;
-    background: #ffffff;
-    margin-bottom: 1rem;
-    padding: 1rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  }
-
-  /* Cells stack vertically */
-  .users-mobile tbody td {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.6rem 0 !important;
-    font-size: 14px;
-    border-bottom: 1px solid #eee;
-  }
-
-  /* Remove last border */
-  .users-mobile tbody td:last-child {
-    border-bottom: none;
-  }
-
-  /* Show labels on mobile */
-  .users-mobile tbody td::before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #555;
-  }
-
-  /* Make delete button full-width */
-  .users-mobile .btn-delete {
-    width: auto;
-    margin-top: 0.6rem;
-    text-align: center;
   }
 }
 </style>

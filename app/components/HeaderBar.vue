@@ -3,7 +3,7 @@
       <div class="header">
         <div class="header-top">
           <span>
-            <img src="/shell_logo.png" width="45px" />
+            <img src="/shell_logo.svg" width="45px" />
           </span>
           <span>
             <h1 class="greeting">Hi {{ userName }}!</h1>
@@ -17,19 +17,29 @@
 
 
 <script setup>
+import { useAuth } from '~/composables/useAuth'
 
+const { user } = useAuth()
 
 // User info
-const userName = ref("Attendant");
+const userName = computed(() => {
+  if (user.value?.displayName) {
+    return user.value.displayName
+  }
+  if (user.value?.email) {
+    return user.value.email.split('@')[0]
+  }
+  return 'Attendant'
+})
+
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
+
 const greetingMessage = computed(() => {
   const hour = new Date().getHours();
   if (hour < 12) return "Good Morning";
   if (hour < 18) return "Good Afternoon";
   return "Good Evening";
 });
-
-
 </script>
 
 <style scoped>

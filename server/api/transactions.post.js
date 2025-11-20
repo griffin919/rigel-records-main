@@ -44,6 +44,8 @@ export default defineEventHandler(async (event) => {
       couponNumber: body.couponNumber || "",
       photoURL: body.photoURL || "",
       paid: !!body.paid,
+      servedBy: body.servedBy || "",
+      servedById: body.servedById || "",
       createdAt: serverTimestamp()
     }
 

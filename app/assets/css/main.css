@@ -690,6 +690,69 @@ body {
   gap: 12px; /* this adds space between the buttons */
   margin-top: 1rem;
 }
+/* Responsive Table (Div-based) */
+.responsive-table {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.table-row:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-color: hsl(var(--accent) / 0.3);
+}
+
+.table-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.cell-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.cell-value {
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+  word-break: break-word;
+}
+
+/* Mobile optimization for responsive tables */
+@media (max-width: 768px) {
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .table-cell {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.3);
+  }
+
+  .table-cell:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+/* Keep old table styles for backward compatibility */
 /* Attendant page mobile view  */
 @media (max-width: 768px) {
   /* Remove table header */

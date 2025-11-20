@@ -2,7 +2,18 @@
 export const useTransactions = () => {
   const getTransactions = async () => {
     try {
-      return await $fetch('/api/transactions')
+      // Get current user info
+      const { user, userRole } = useAuth()
+      const params = {}
+      
+      if (user.value?.uid) {
+        params.userId = user.value.uid
+        params.userRole = userRole.value || 'attendant'
+      }
+      
+      return await $fetch('/api/transactions', { 
+        params 
+      })
     } catch (err) {
       console.error('Error fetching transactions:', err)
       throw err

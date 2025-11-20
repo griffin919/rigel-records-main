@@ -1,6 +1,6 @@
 // server/api/transactions.get.js
 import { initializeApp, getApps, getApp } from 'firebase/app'
-import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { getFirestore, collection, getDocs, query, orderBy, where } from 'firebase/firestore'
 
 // Initialize Firebase safely
 const app = getApps().length
@@ -17,16 +17,42 @@ const app = getApps().length
 
 const db = getFirestore(app)
 
-export default defineEventHandler(async () => {
-  const q = query(collection(db, 'transactions'), orderBy('createdAt', 'desc'))
-  const snap = await getDocs(q)
-  return snap.docs.map(d => {
-  const data = d.data()
-  return {
-    id: d.id,
-    ...data,
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : null
+export default defineEventHandler(async (event) => {
+  try {
+    // Get userId and userRole from query parameters
+    const queryParams = getQuery(event)
+    const userId = queryParams.userId
+    const userRole = queryParams.userRole || 'attendant'
+    
+    // Build query based on role
+    let q
+    if (userRole === 'admin') {
+      // Admins see all transactions
+      q = query(collection(db, 'transactions'), orderBy('createdAt', 'desc'))
+    } else if (userId) {
+      // Attendants only see their own transactions
+      q = query(
+        collection(db, 'transactions'), 
+        where('servedById', '==', userId),
+        orderBy('createdAt', 'desc')
+      )
+    } else {
+      // No user ID, return empty array
+      return []
+    }
+    
+    const snap = await getDocs(q)
+    return snap.docs.map(d => {
+      const data = d.data()
+      return {
+        id: d.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : null
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching transactions:', error)
+    return []
   }
-})
 })
 

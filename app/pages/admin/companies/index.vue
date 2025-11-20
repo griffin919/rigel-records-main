@@ -5,7 +5,7 @@
     </div>
     
     <div v-if="isLoading" class="loading-state">
-      <img src="/shell_logo.png" alt="Loading" class="loading-logo" />
+      <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
     
@@ -59,42 +59,41 @@
       </div>
 
       <!-- Companies List -->
-      <section class="card companies-mobile">
-        <h3 class="text-xl font-semibold">All Companies ({{ companies.length }})</h3>
+      <section class="card">
+        <h3 class="text-xl font-semibold mb-4">All Companies ({{ companies.length }})</h3>
 
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Company Name</th>
-              <th>Contact Person</th>
-              <th>Location</th>
-              <th>Phone</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr v-for="c in companies" :key="c.id">
-              <td data-label="Company">{{ c.name }}</td>
-              <td data-label="Contact">{{ c.contactPerson }}</td>
-              <td data-label="Location">{{ c.location }}</td>
-              <td data-label="Phone">{{ c.phone }}</td>
-
-              <td data-label="Action">
+        <div v-if="companies.length" class="responsive-table">
+          <div v-for="c in companies" :key="c.id" class="table-row">
+            <div class="table-cell">
+              <div class="cell-label">Company Name</div>
+              <div class="cell-value">{{ c.name }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Contact Person</div>
+              <div class="cell-value">{{ c.contactPerson }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Location</div>
+              <div class="cell-value">{{ c.location }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Phone</div>
+              <div class="cell-value">{{ c.phone }}</div>
+            </div>
+            <div class="table-cell">
+              <div class="cell-label">Action</div>
+              <div class="cell-value">
                 <button class="btn secondary" @click="router.push(`/admin/companies/${c.id}`)">
                   <EyeIcon class="btn-icon-sm" />
                   View Details
                 </button>
-              </td>
-            </tr>
-
-            <tr v-if="!companies.length">
-              <td colspan="5" class="text-center text-muted-foreground">
-                No companies found
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center text-muted-foreground py-8">
+          No companies found
+        </div>
       </section>
 
     </template>

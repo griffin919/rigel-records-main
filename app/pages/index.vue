@@ -1,99 +1,42 @@
 <template>
   <div class="app-container">
-    <!-- Desktop Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <span class="logo-icon">
-            <img src="/shell_logo.png">
-          </span>
-          <span class="logo-text">Rigel</span>
-        </div>
-      </div>
-
-      <nav class="sidebar-nav">
-        <NuxtLink to="/" class="nav-item" :class="{ active: currentRoute === '/' }">
-          <HomeIcon class="nav-icon" />
-          <span class="nav-label">Dashboard</span>
-        </NuxtLink>
-        <NuxtLink to="/reports" class="nav-item" :class="{ active: currentRoute === '/reports' }">
-          <ChartBarIcon class="nav-icon" />
-          <span class="nav-label">Reports</span>
-        </NuxtLink>
-        <NuxtLink to="/admin/companies" class="nav-item" :class="{ active: currentRoute.startsWith('/admin/companies') }">
-          <BuildingOfficeIcon class="nav-icon" />
-          <span class="nav-label">Companies</span>
-        </NuxtLink>
-        <NuxtLink to="/admin/items" class="nav-item" :class="{ active: currentRoute.startsWith('/admin/items') }">
-          <FireIcon class="nav-icon" />
-          <span class="nav-label">Items</span>
-        </NuxtLink>
-        <NuxtLink to="/admin/users" class="nav-item" :class="{ active: currentRoute.startsWith('/admin/users') }">
-          <UsersIcon class="nav-icon" />
-          <span class="nav-label">Users</span>
-        </NuxtLink>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button class="nav-item logout-btn" @click="handleLogout">
-          <ArrowRightOnRectangleIcon class="nav-icon" />
-          <span class="nav-label">Logout</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Mobile Bottom Navigation -->
-    <nav class="bottom-nav">
-      <NuxtLink to="/" class="bottom-nav-item" :class="{ active: currentRoute === '/' }">
-        <HomeIcon class="bottom-nav-icon" />
-        <span class="bottom-nav-label">Home</span>
-      </NuxtLink>
-      <NuxtLink to="/reports" class="bottom-nav-item" :class="{ active: currentRoute === '/reports' }">
-        <ChartBarIcon class="bottom-nav-icon" />
-        <span class="bottom-nav-label">Reports</span>
-      </NuxtLink>
-      <button class="bottom-nav-item add-button" @click="showForm = true">
-        <span class="bottom-nav-icon-wrapper">
-          <PlusIcon class="plus-icon" />
-        </span>
-      </button>
-      <NuxtLink to="/admin/companies" class="bottom-nav-item" :class="{ active: currentRoute.startsWith('/admin') }">
-        <CogIcon class="bottom-nav-icon" />
-        <span class="bottom-nav-label">Admin</span>
-      </NuxtLink>
-      <button class="bottom-nav-item" @click="handleLogout">
-        <UserCircleIcon class="bottom-nav-icon" />
-        <span class="bottom-nav-label">Profile</span>
-      </button>
-    </nav>
-
     <!-- Main Content Wrapper -->
     <div class="content-wrapper">
      
 
       <!-- Main Content -->
       <div class="main">
+      <!-- Admin Button (only for admins) -->
+      <button v-if="userRole === 'admin'" class="admin-access-btn" @click="navigateToAdmin">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>Admin Panel</span>
+      </button>
+      
       <!-- Today's Summary -->
       <div class="summary-card">
-        <h2>Today's Summary</h2>
+        <div class="todays-sales">
+          <span>
+            <h2>Today's Sales </h2>
+          </span>
+            <span>
+           <h2>{{ todaySummary.amount }}</h2> 
+          </span>
+        </div>
         <div class="summary-grid">
           <div class="summary-item">
-            <BuildingOfficeIcon class="nav-icon" />
+            <BuildingOfficeIcon class="summary-icon" />
             <span class="nav-label"></span>
             <p class="number">{{ todaySummary.companies }}</p>
             <p class="label">Companies</p>
           </div>
           <div class="summary-item">
-            <TruckIcon class="nav-icon" />
+            <TruckIcon class="summary-icon" />
             <span class="nav-label"></span>
             <p class="number">{{ todaySummary.vehicles }}</p>
             <p class="label">Vehicles</p>
-          </div>
-          <div class="summary-item">
-            <CreditCardIcon class="nav-icon" />
-            <span class="nav-label"></span>
-            <p class="number">{{ todaySummary.amount }}</p>
-            <p class="label">GHS</p>
           </div>
         </div>
       </div>
@@ -132,7 +75,11 @@
                   <p>Cost</p>
                   <p>GHS {{ transaction.cost }}</p>
                 </div>
-                <div class="col-span-2">
+                <div>
+                  <p>Served By</p>
+                  <p>{{ transaction.servedBy || 'Attendant' }}</p>
+                </div>
+                <div>
                   <p>Date & Time</p>
                   <p>{{ formatDate(transaction.createdAt) }}</p>
                 </div>
@@ -164,7 +111,7 @@
 
         <div class="modal-content">
         <div v-if="isLoading" class="loading-state">
-          <img src="/shell_logo.png" alt="Loading" class="loading-logo" />
+          <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
           <p class="loading-text">Loading...</p>
         </div>          <form v-else @submit.prevent="submitEntry">
             <div class="form-group">
@@ -288,26 +235,18 @@ import { useCompanies } from '~/composables/useCompanies'
 import { useTransactions } from '~/composables/useTransactions'
 import { useNotification } from '~/composables/useNotification'
 import { useItems } from '~/composables/useItems'
+import { useAuth } from '~/composables/useAuth'
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { getStorage } from 'firebase/storage'
 // Heroicons
 import { 
-  HomeIcon, 
-  ChartBarIcon, 
-  BuildingOfficeIcon, 
-  FireIcon,
-  UsersIcon,
-  ArrowRightOnRectangleIcon,
-  Bars3Icon,
   MagnifyingGlassIcon,
   PlusIcon,
   XMarkIcon,
-  CogIcon,
-  UserCircleIcon,
   CreditCardIcon,
-  TruckIcon
+  TruckIcon,
+  BuildingOfficeIcon
 } from '@heroicons/vue/24/outline'
-import { FunnelIcon } from '@heroicons/vue/16/solid'
 
 definePageMeta({
   layout: 'default',
@@ -316,6 +255,7 @@ definePageMeta({
 
 const { getTransactions, addTransaction } = useTransactions()
 const { success, error } = useNotification()
+const { user, userRole } = useAuth()
 
 /* shared state */
 const companies = ref([])
@@ -331,11 +271,6 @@ const searchQuery = ref('')
 const selectedDriver = ref('')
 const photoInput = ref(null)
 const showForm = ref(false)
-
-// Navigation
-const route = useRoute()
-const router = useRouter()
-const currentRoute = computed(() => route.path)
 
 const availableDrivers = computed(() => {
   if (!form.company || !form.company.drivers) return [];
@@ -501,7 +436,9 @@ async function submitEntry() {
       cost: form.cost,
       couponNumber: form.couponNumber || '',
       photoURL: form.photoURL || '',
-      paid: false
+      paid: false,
+      servedBy: user.value?.displayName || user.value?.email || 'Attendant',
+      servedById: user.value?.uid || ''
     })
 
     // Refresh transactions immediately
@@ -545,13 +482,8 @@ function getItemColor(itemName) {
   return item?.color || '#FFC800'
 }
 
-function toggleMobileMenu() {
-  // Mobile menu toggle functionality can be implemented here if needed
-}
-
-function handleLogout() {
-  // Navigate to login and clear auth
-  router.push('/login')
+function navigateToAdmin() {
+  navigateTo('/admin/reports')
 }
 
 const filteredTransactions = computed(() => {
@@ -584,200 +516,12 @@ const todaySummary = computed(() => {
 </script>
 
 <style scoped>
-/* Modern mobile-first design matching sampletheme.vue */
+/* Modern mobile-first design */
 .app-container { 
   min-height: 100vh; 
   background: #f9fafb; 
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
-}
-
-/* Desktop Sidebar */
-.sidebar {
-  display: none;
-  width: 16rem;
-  background: white;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  border-right: 1px solid #e5e7eb;
-  flex-direction: column;
-  z-index: 50;
-}
-
-.sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.logo-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: linear-gradient(135deg, #FFC800, #DD1D21);
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(221, 29, 33, 0.2);
-}
-
-.logo-icon .icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: white;
-}
-
-.logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #FFC800, #DD1D21);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: 0.75rem;
-  color: #6b7280;
-  text-decoration: none;
-  transition: all 0.2s;
-  margin-bottom: 0.5rem;
-  cursor: pointer;
-  border: none;
-  background: none;
-  width: 100%;
-  font-size: 0.9375rem;
-}
-
-.nav-item:hover {
-  background: #f9fafb;
-  color: #111827;
-}
-
-.nav-item.active {
-  background: linear-gradient(135deg, rgba(255, 200, 0, 0.1), rgba(221, 29, 33, 0.1));
-  color: #DD1D21;
-  font-weight: 600;
-}
-
-.nav-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-}
-
-.nav-label {
-  flex: 1;
-}
-
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid #f3f4f6;
-}
-
-.logout-btn {
-  color: #dc2626;
-}
-
-.logout-btn:hover {
-  background: rgba(220, 38, 38, 0.1);
-}
-
-/* Bottom Navigation (Mobile) */
-.bottom-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: white;
-  border-top: 1px solid #e5e7eb;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0.5rem;
-  z-index: 100;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
-  color: #9ca3af;
-  text-decoration: none;
-  transition: all 0.2s;
-  flex: 1;
-  max-width: 5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.bottom-nav-item.active {
-  color: #DD1D21;
-}
-
-.bottom-nav-item:not(.add-button):active {
-  transform: scale(0.95);
-}
-
-.bottom-nav-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-.bottom-nav-icon-wrapper {
-  width: 3.5rem;
-  height: 3.5rem;
-  background: linear-gradient(135deg, #FFC800, #DD1D21);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 12px rgba(221, 29, 33, 0.4);
-}
-
-.plus-icon {
-  width: 2rem;
-  height: 2rem;
-  color: white;
-  stroke-width: 2.5;
-}
-
-.bottom-nav-label {
-  font-size: 0.625rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.add-button {
-  position: relative;
-  margin-top: -1.5rem;
-}
-
-.add-button:active .bottom-nav-icon-wrapper {
-  transform: scale(0.95);
 }
 
 /* Content Wrapper */
@@ -861,6 +605,43 @@ const todaySummary = computed(() => {
   padding-bottom: 5rem;
 }
 
+.admin-access-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 50%, #6b21a8 100%);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+  transition: all 0.3s ease;
+  letter-spacing: 0.01em;
+}
+
+.admin-access-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.admin-access-btn:hover {
+  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #581c87 100%);
+  box-shadow: 0 6px 16px rgba(147, 51, 234, 0.4);
+  transform: translateY(-2px);
+}
+
+.admin-access-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
 .summary-card { 
   background: linear-gradient(135deg, #FFC800 0%, #DD1D21 100%); 
   padding: 1.5rem; 
@@ -885,7 +666,7 @@ const todaySummary = computed(() => {
 
 .summary-item { 
   background: rgba(255,255,255,0.2); 
-  width:32%;
+  width:48%;
   border-radius: 1rem; 
   padding: 0.5rem; 
   backdrop-filter: blur(10px); 
@@ -897,6 +678,14 @@ const todaySummary = computed(() => {
   font-size: 1.5rem; 
   display: block; 
   margin-bottom: 0.5rem; 
+}
+
+.summary-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0 auto 0.5rem;
+  color: white;
+  opacity: 0.9;
 }
 
 .summary-item .number { 
@@ -1031,10 +820,15 @@ const todaySummary = computed(() => {
 }
 
 .no-transactions .icon-large { 
-  font-size: 4rem; 
+  font-size: 3rem; 
   margin-bottom: 1rem; 
   display: block; 
-  opacity: 0.5;
+  opacity: 0.3;
+}
+
+.no-transactions .icon-large svg {
+  width: 3rem;
+  height: 3rem;
 }
 
 .no-transactions p {
@@ -1049,7 +843,7 @@ const todaySummary = computed(() => {
 }
 
 .floating-btn { 
-  display: none; /* Hidden on mobile, using bottom nav instead */
+  display: flex;
   position: fixed; 
   bottom: 1.5rem; 
   right: 1.5rem; 
@@ -1171,6 +965,11 @@ const todaySummary = computed(() => {
   font-size: 0.875rem; 
 }
 
+.todays-sales{
+  display: flex;
+  justify-content: space-between;
+}
+
 .modal-content select, 
 .modal-content input[type="text"],
 .modal-content input[type="number"] { 
@@ -1283,28 +1082,6 @@ const todaySummary = computed(() => {
 
 /* Responsive adjustments */
 @media (min-width: 768px) {
-  /* Show sidebar on desktop */
-  .sidebar {
-    display: flex;
-  }
-
-  /* Hide bottom nav on desktop */
-  .bottom-nav {
-    display: none;
-  }
-
-  /* Show floating button on desktop */
-  .floating-btn {
-    display: flex;
-  }
-
-  /* Adjust content wrapper for sidebar */
-
-  /* Hide mobile menu button */
-  .mobile-only {
-    display: none;
-  }
-
   .modal {
     border-radius: 1.5rem;
     max-height: 85vh;
@@ -1327,11 +1104,6 @@ const todaySummary = computed(() => {
   .main {
     padding: 1rem;
   }
-
-  /* Ensure bottom nav is visible */
-  .bottom-nav {
-    display: flex;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1341,96 +1113,6 @@ const todaySummary = computed(() => {
 
   .summary-item .number {
     font-size: 1.2rem;
-  }
-}
-
-/* --------------------------------------------- */
-/* DESKTOP VIEW (Large Screens)                  */
-/* --------------------------------------------- */
-@media (min-width: 1024px) {
-
-  /* Show Sidebar on Desktop */
-  .sidebar {
-    display: flex;
-  }
-
-  /* Hide Mobile Bottom Nav */
-  .bottom-nav {
-    display: none;
-  }
-
-  /* Push content to the right (because of sidebar) */
-  .content-wrapper {
-    padding-bottom: 2rem; /* remove big mobile padding */
-  }
-
-  /* Header looks cleaner on desktop */
-  .header {
-    padding: 1.25rem 2rem;
-  }
-
-  /* Remove mobile-only elements */
-  .mobile-only {
-    display: none !important;
-  }
-
-  /* Main content should stretch wider */
-  .main {
-    max-width: 70rem; /* make it wider for desktop */
-    padding: 2rem 3rem;
-  }
-
-  /* Summary card on desktop */
-  .summary-card {
-    border-radius: 1.25rem;
-    margin-bottom: 2rem;
-  }
-
-  .summary-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  /* Search bar spacing improved */
-  .search-bar {
-    margin-bottom: 2rem;
-  }
-
-  /* Transactions layout (optional enhancement) */
-  .transactions-list {
-    gap: 1.25rem;
-  }
-
-  .transaction-card {
-    padding: 1.25rem 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-
-  .sidebar {
-    display: flex;
-  }
-
-  .bottom-nav {
-    display: none;
-  }
-
-  /* FIX 1: Make content sit flush next to sidebar */
-  .content-wrapper {
-    width: auto;
-  }
-
-  /* FIX 2: Remove center auto-margin on large screens */
-  .main {
-    max-width: none;
-    margin: 0;              /* removes the huge gap */
-    padding: 2rem 2rem;      /* reduce padding further if you want */
-  }
-
-  /* FIX 3: Reduce header padding too if you want tighter layout */
-  .header {
-    padding: 1rem 2rem;
   }
 }
 </style>

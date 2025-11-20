@@ -52,11 +52,11 @@
         <ChartBarIcon class="bottom-nav-icon" />
         <span class="bottom-nav-label">Reports</span>
       </NuxtLink>
-      <button class="bottom-nav-item add-button" @click="$emit('add')">
+      <div class="bottom-nav-item add-button" @click="$emit('add')">
         <span class="bottom-nav-icon-wrapper">
-          <PlusIcon class="plus-icon" />
+          <img src="/shell_logo.svg" width="50px"/>
         </span>
-      </button>
+      </div>
       <NuxtLink to="/admin/companies" class="bottom-nav-item" :class="{ active: currentRoute.startsWith('/admin/companies') }">
         <BuildingOfficeIcon class="bottom-nav-icon" />
         <span class="bottom-nav-label">Companies</span>
@@ -289,7 +289,7 @@ function handleLogout() {
 .bottom-nav-icon-wrapper {
   width: 3.5rem;
   height: 3.5rem;
-  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  background: #FFC800;
   border-radius: 50%;
   display: flex;
   align-items: center;
