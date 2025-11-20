@@ -1,5 +1,8 @@
 <template>
   <ClientOnly>
+     <nav>
+        <HeaderBar/>
+      </nav>
     <div class="admin-layout">
       <!-- Desktop Sidebar -->
       <aside class="sidebar">

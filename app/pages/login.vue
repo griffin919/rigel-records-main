@@ -3,7 +3,7 @@
     <div class="login-card">
       <div class="login-header">
         <div class="logo-large">
-          <FireIcon class="logo-icon" />
+          <img src="/shell_logo.png"/>
         </div>
         <h1>Rigel Records</h1>
         <p class="subtitle">Fuel Management System</p>
