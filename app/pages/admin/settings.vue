@@ -148,6 +148,7 @@
 
         <!-- Items Tab -->
         <div v-if="activeTab === 'items'" class="table users-mobile">
+          
           <!-- Add/Edit Item Modal -->
           <div v-if="showItemModal" class="modal-backdrop" @click.self="closeItemModal">
             <div class="modal max-w-md">
@@ -212,7 +213,6 @@ import {
   MagnifyingGlassIcon,
   PlusIcon
 } from '@heroicons/vue/24/outline';
-import { table } from "#build/ui";
 
 definePageMeta({
   layout: 'admin',
