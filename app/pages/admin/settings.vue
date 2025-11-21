@@ -147,7 +147,7 @@
         </div>
 
         <!-- Items Tab -->
-        <div v-if="activeTab === 'items'" class="tab-panel">
+        <div v-if="activeTab === 'items'" class="table users-mobile">
           <!-- Add/Edit Item Modal -->
           <div v-if="showItemModal" class="modal-backdrop" @click.self="closeItemModal">
             <div class="modal max-w-md">
@@ -192,7 +192,7 @@
           </div>
 
           <!-- Items List -->
-          <section class="card">
+          <section>
             <Items />
           </section>
         </div>
@@ -212,6 +212,7 @@ import {
   MagnifyingGlassIcon,
   PlusIcon
 } from '@heroicons/vue/24/outline';
+import { table } from "#build/ui";
 
 definePageMeta({
   layout: 'admin',
@@ -526,27 +527,38 @@ async function handleDeleteItem(item) {
 }
 
 /* Search Bar */
-.search-bar {
-  position: relative;
-  margin-bottom: 1rem;
+
+.search-bar { 
+  position: relative; 
+  margin-bottom: 1.5rem; 
 }
 
-.search-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
+.search-bar .search-icon { 
+  position: absolute; 
+  left: 1rem; 
+  top: 50%; 
+  transform: translateY(-50%); 
   width: 1.25rem;
   height: 1.25rem;
-  color: #9ca3af;
+  color: #9ca3af; 
   pointer-events: none;
 }
 
-.search-bar input {
-  width: 100%;
-  padding-left: 2.5rem;
+.search-bar input { 
+  width: 100%; 
+  padding: 0.875rem 1rem 0.875rem 3rem; 
+  border-radius: 1rem; 
+  border: 1px solid #e5e7eb; 
+  outline: none; 
+  font-size: 0.9375rem;
+  background: white;
+  transition: all 0.2s;
 }
 
+.search-bar input:focus {
+  border-color: #FFC800;
+  box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+}
 /* Badges */
 .badge {
   display: inline-block;

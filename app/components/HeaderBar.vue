@@ -9,7 +9,14 @@
             <h1 class="greeting">Hi {{ userName }}!</h1>
             <p class="sub-greeting">{{ greetingMessage }}</p>
           </span>
-          <div class="avatar">{{ userInitial }}</div>
+          <div class="sidebar-footer">
+          <div class="avatar" @click="handleLogout">
+
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 3h6a3 3 0 0 1 3 3v4h-1V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-4h1v4a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3m3 9h11.25L16 8.75l.66-.75l4.5 4.5l-4.5 4.5l-.66-.75L19.25 13H8z" stroke-width="0.5" stroke="#fff"/></svg>
+          </div>
+
+       
+      </div>
         </div>
       </div>
   </div>
@@ -31,6 +38,24 @@ const userName = computed(() => {
   }
   return 'Attendant'
 })
+
+// Logout
+ const { isAdmin, logout } = useAuth();
+const { success } = useNotification();
+const router = useRouter();
+const route = useRoute();
+
+function isActive(path) {
+  return route.path === path;
+}
+
+async function handleLogout() {
+  const result = await logout();
+  if (result.success) {
+    success('Logged out successfully');
+    router.push('/login');
+  }
+}
 
 const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
 
@@ -99,6 +124,82 @@ const greetingMessage = computed(() => {
   .summary-item .number {
     font-size: 1.2rem;
   }
+}
+.logout-btn {
+  color: #dc2626;
+}
+
+.logout-btn:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+.nav-item{
+display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    color: #6b7280;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    font-size: 0.9375rem;
+}
+
+
+
+.btn-logout {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-logout:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.logout-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+
+.btn-logout {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-logout:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.logout-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 /* --------------------------------------------- */

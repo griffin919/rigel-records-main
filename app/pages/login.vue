@@ -5,7 +5,6 @@
         <div class="logo-large">
           <img src="/shell_logo.svg"/>
         </div>
-        <h1>Rigel Records</h1>
         <p class="subtitle">Fuel Management System</p>
       </div>
 
@@ -118,14 +117,12 @@ async function handleLogin() {
 .logo-large {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, #FFC800, #DD1D21);
   color: white;
   border-radius: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(221, 29, 33, 0.3);
 }
 
 .logo-icon {

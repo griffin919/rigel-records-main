@@ -108,28 +108,4 @@ async function handleLogout() {
   color: rgba(255,255,255,0.7);
 }
 
-.btn-logout {
-  width: 100%;
-  padding: 10px;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-logout:hover {
-  background: rgba(255,255,255,0.3);
-}
-
-.logout-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
 </style>

@@ -792,3 +792,8 @@ body {
   }
 }
 
+.inventory-card{
+   position: relative;
+  top: -30px;
+}
+

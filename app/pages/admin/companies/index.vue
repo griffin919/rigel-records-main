@@ -59,7 +59,7 @@
       </div>
 
       <!-- Companies List -->
-      <section class="card">
+      <section>
         <h3 class="text-xl font-semibold mb-4">All Companies ({{ companies.length }})</h3>
 
         <div v-if="companies.length" class="responsive-table">

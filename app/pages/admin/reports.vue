@@ -470,6 +470,8 @@ function exportCSV(rows, filename) {
 /* Filter Actions */
 .filters-actions {
   display: flex;
+  gap: 25px;
+  margin: 20px;
 }
 
 .filter-btn {

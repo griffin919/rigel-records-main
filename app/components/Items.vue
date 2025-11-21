@@ -1,5 +1,5 @@
 <template>
-  <main class="content">
+  <main class="overall-itemspage">
     <div v-if="loadError" class="error-state">
       <strong>Error:</strong> {{ loadError }}
     </div>
@@ -11,18 +11,17 @@
     
     <template v-else>
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <div>
+        <div class="inventory-card">
           <h1 class="text-3xl font-bold tracking-tight mb-2">Inventory Items</h1>
           <p class="text-muted-foreground">Manage sellable items and their units</p>
-        </div>
+        
         <button class="btn" @click="openAddItem">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
           Add Item
         </button>
-      </div>
+    </div>
 
       <!-- Add/Edit Item Modal -->
       <div v-if="showItemModal" class="modal-backdrop" @click.self="closeItemModal">
@@ -68,7 +67,7 @@
       </div>
 
       <!-- Items List -->
-      <section class="card">
+      <section  >
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">All Items</h3>
           <div class="text-sm text-muted-foreground">{{ items.length }} items</div>
