@@ -70,29 +70,21 @@
       </section>
 
       <!-- Company Summary -->
-      <section class="card">
+      <section>
         <h3 class="text-lg font-semibold mb-4">Company Summary</h3>
-        <div v-if="filteredCompanySummary.length" class="responsive-table">
-          <div v-for="c in filteredCompanySummary" :key="c.company" class="table-row">
-            <div class="table-cell">
-              <div class="cell-label">Company</div>
-              <div class="cell-value font-medium">{{ c.company }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Amount Owed</div>
-              <div class="cell-value font-semibold text-lg">GHS {{ c.amountOwed.toFixed(2) }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Action</div>
-              <div class="cell-value">
-                <button class="btn ghost" @click="openCompanyDetails(c)">
-                  View Details
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-center text-muted-foreground py-8">No records found</div>
+        <CompactTable
+          :columns="companySummaryColumns"
+          :items="filteredCompanySummary"
+          empty-message="No records found">
+          <template #cell-amountOwed="{ item }">
+            <span class="font-semibold text-lg">GHS {{ item.amountOwed.toFixed(2) }}</span>
+          </template>
+          <template #row-actions="{ item }">
+            <button class="btn-view-details" @click="openCompanyDetails(item)">
+              View Details
+            </button>
+          </template>
+        </CompactTable>
       </section>
 
       <!-- Details Modal -->
@@ -100,71 +92,46 @@
         <div class="mobile-view"> 
         <div class="modal max-w-6xl">
           <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
-          <div class="responsive-table">
-            <div v-for="t in detailsItem.transactions" :key="t.id" class="table-row">
-              <div class="table-cell">
-                <div class="cell-label">Driver</div>
-                <div class="cell-value font-medium">{{ t.driverName }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Phone</div>
-                <div class="cell-value">{{ t.phone }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Car</div>
-                <div class="cell-value">{{ t.carNumber }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Item</div>
-                <div class="cell-value">{{ t.itemName || 'Fuel' }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Qty</div>
-                <div class="cell-value">{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Cost</div>
-                <div class="cell-value font-semibold">GHS {{ t.cost }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Coupon</div>
-                <div class="cell-value">{{ t.couponNumber || '-' }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Photo</div>
-                <div class="cell-value">
-                  <a v-if="t.photoURL" :href="t.photoURL" target="_blank" class="text-blue-600 hover:underline text-sm">
-                    View Photo
-                  </a>
-                  <span v-else class="text-muted-foreground">-</span>
-                </div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Date</div>
-                <div class="cell-value text-muted-foreground text-sm">{{ formatDate(t.createdAt) }}</div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Status</div>
-                <div class="cell-value">
-                  <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
-                    {{ t.paid ? "Paid" : "Unpaid" }}
-                  </span>
-                </div>
-              </div>
-              <div class="table-cell">
-                <div class="cell-label">Action</div>
-                <div class="cell-value">
-                  <button 
-                    class="btn-small" 
-                    :class="t.paid ? 'btn-warning' : 'btn-success'"
-                    @click="togglePaidStatus(t)"
-                  >
-                    {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CompactTable
+            :columns="detailTransactionColumns"
+            :items="detailsItem.transactions"
+            empty-message="No transactions found">
+            <template #cell-itemName="{ item }">
+              {{ item.itemName || 'Fuel' }}
+            </template>
+            <template #cell-quantity="{ item }">
+              {{ item.quantity || item.fuelQuantity }} {{ item.itemUnit || 'L' }}
+            </template>
+            <template #cell-cost="{ item }">
+              <span class="font-semibold">GHS {{ item.cost }}</span>
+            </template>
+            <template #cell-couponNumber="{ item }">
+              {{ item.couponNumber || '-' }}
+            </template>
+            <template #cell-photoURL="{ item }">
+              <a v-if="item.photoURL" :href="item.photoURL" target="_blank" class="text-blue-600 hover:underline text-sm">
+                View
+              </a>
+              <span v-else class="text-muted-foreground">-</span>
+            </template>
+            <template #cell-createdAt="{ item }">
+              <span class="text-muted-foreground text-sm">{{ formatDate(item.createdAt) }}</span>
+            </template>
+            <template #cell-paid="{ item }">
+              <span :class="['status-badge', item.paid ? 'status-paid' : 'status-unpaid']">
+                {{ item.paid ? 'Paid' : 'Unpaid' }}
+              </span>
+            </template>
+            <template #row-actions="{ item }">
+              <button 
+                class="btn-small" 
+                :class="item.paid ? 'btn-warning' : 'btn-success'"
+                @click="togglePaidStatus(item)"
+              >
+                {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+              </button>
+            </template>
+          </CompactTable>
           <div class="flex justify-end mt-6">
             <button class="btn" @click="detailsItem = null">Close</button>
           </div>
@@ -180,6 +147,7 @@ import { ref, computed, onMounted } from "vue";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
+import CompactTable from "~/components/CompactTable.vue";
 
 definePageMeta({
   layout: 'admin',
@@ -310,6 +278,24 @@ const filteredCompanySummary = computed(() => {
   
   return list;
 });
+
+const companySummaryColumns = computed(() => [
+  { key: 'company', label: 'Company', width: '2' },
+  { key: 'amountOwed', label: 'Amount Owed', width: '1.5' },
+]);
+
+const detailTransactionColumns = computed(() => [
+  { key: 'driverName', label: 'Driver', width: '1.2' },
+  { key: 'phone', label: 'Phone', width: '1' },
+  { key: 'carNumber', label: 'Car', width: '1' },
+  { key: 'itemName', label: 'Item', width: '1' },
+  { key: 'quantity', label: 'Qty', width: '0.8' },
+  { key: 'cost', label: 'Cost', width: '1' },
+  { key: 'couponNumber', label: 'Coupon', width: '1' },
+  { key: 'photoURL', label: 'Photo', width: '0.8' },
+  { key: 'createdAt', label: 'Date', width: '1.2' },
+  { key: 'paid', label: 'Status', width: '0.8' },
+]);
 
 // --- Show Company Details in Modal ---
 function openCompanyDetails(c) {
@@ -481,11 +467,12 @@ function exportCSV(rows, filename) {
   padding: 0.75rem 1.5rem;
   border-radius: 0.625rem;
   font-size: 0.9375rem;
-  font-weight: 600;
-  border: none;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #f9fafb;
+  color: #6b7280;
   letter-spacing: 0.01em;
 }
 
@@ -496,49 +483,78 @@ function exportCSV(rows, filename) {
 }
 
 .filter-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
 .filter-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #e5e7eb;
+  border-color: #bfdbfe;
 }
 
-/* Apply Button - Blue Gradient */
+/* Apply Button */
 .filter-btn-apply {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
-  color: white;
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
   flex: 1;
   min-width: 100px;
 }
 
 .filter-btn-apply:hover {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+  background: #fde68a;
+  border-color: #fcd34d;
+  color: #78350f;
 }
 
-/* Reset Button - Red Gradient */
+/* Reset Button */
 .filter-btn-reset {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
-  color: white;
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
   flex: 1;
   min-width: 100px;
 }
 
 .filter-btn-reset:hover {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  background: #fecaca;
+  border-color: #fca5a5;
+  color: #7f1d1d;
 }
 
-/* Download Button - Purple Gradient */
+/* Download Button */
 .filter-btn-download {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
-  color: white;
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
   flex: 1;
   min-width: 120px;
 }
 
 .filter-btn-download:hover {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+  background: #bfdbfe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+/* View Details Button */
+.btn-view-details {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-details:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
 /* Mobile Responsive */

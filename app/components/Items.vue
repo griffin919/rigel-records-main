@@ -67,72 +67,59 @@
       </div>
 
       <!-- Items List -->
-      <section  >
+      <section class="items-section">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">All Items</h3>
           <div class="text-sm text-muted-foreground">{{ items.length }} items</div>
         </div>
 
-        <div v-if="items.length" class="responsive-table">
-          <div v-for="item in items" :key="item.id" class="table-row">
-            <div class="table-cell">
-              <div class="cell-label">Item Name</div>
-              <div class="cell-value font-semibold">
-                <span class="inline-flex items-center gap-2">
-                  <span class="w-4 h-4 rounded" :style="{ backgroundColor: item.color || '#666' }"></span>
-                  {{ item.name }}
-                </span>
-              </div>
+        <CompactTable 
+          :columns="itemColumns" 
+          :items="items"
+          empty-message="No items yet. Click 'Add Item' to create your first item.">
+          <template #cell-name="{ item }">
+            <div class="item-cell">
+              <span class="w-4 h-4 rounded" :style="{ backgroundColor: item.color || '#666' }"></span>
+              <span class="font-semibold">{{ item.name }}</span>
             </div>
-            <div class="table-cell">
-              <div class="cell-label">Color</div>
-              <div class="cell-value">
-                <span class="inline-flex items-center gap-2">
-                  <span class="w-6 h-6 rounded border" :style="{ backgroundColor: item.color || '#666' }"></span>
-                  {{ item.color || '-' }}
-                </span>
-              </div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Unit</div>
-              <div class="cell-value">{{ item.unit }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Price (GHS)</div>
-              <div class="cell-value">{{ item.price ? `GHS ${item.price.toFixed(2)}` : 'Variable' }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Description</div>
-              <div class="cell-value text-muted-foreground">{{ item.description || '-' }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Actions</div>
-              <div class="cell-value">
-                <div class="flex gap-2">
-                  <button class="btn-small" @click="openEditItem(item)">
-                    Edit
-                  </button>
-                  <button class="btn-small btn-danger" @click="handleDeleteItem(item)">
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          </template>
 
-        <div v-else class="text-center py-8 text-muted-foreground">
-          No items yet. Click "Add Item" to create your first item.
-        </div>
+          <template #cell-color="{ item }">
+            <span class="inline-flex items-center gap-2">
+              <span class="w-6 h-6 rounded border" :style="{ backgroundColor: item.color || '#666' }"></span>
+              {{ item.color || '-' }}
+            </span>
+          </template>
+
+          <template #cell-price="{ item }">
+            <span>{{ item.price ? `GHS ${item.price.toFixed(2)}` : 'Variable' }}</span>
+          </template>
+
+          <template #cell-description="{ item }">
+            <span class="text-muted-foreground">{{ item.description || '-' }}</span>
+          </template>
+
+          <template #row-actions="{ item }">
+            <div class="flex gap-2">
+              <button class="btn-small" @click="openEditItem(item)">
+                Edit
+              </button>
+              <button class="btn-small btn-danger" @click="handleDeleteItem(item)">
+                Delete
+              </button>
+            </div>
+          </template>
+        </CompactTable>
       </section>
     </template>
   </main>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { useItems } from "~/composables/useItems";
 import { useNotification } from "~/composables/useNotification";
+import CompactTable from "~/components/CompactTable.vue";
 
 definePageMeta({
   layout: 'admin',
@@ -148,6 +135,14 @@ const isSubmitting = ref(false)
 const loadError = ref('')
 const showItemModal = ref(false)
 const editingItem = ref(null)
+
+const itemColumns = computed(() => [
+  { key: 'name', label: 'Item Name', width: '1.5' },
+  { key: 'unit', label: 'Unit', width: '1' },
+  { key: 'color', label: 'Color', width: '1' },
+  { key: 'price', label: 'Price (GHS)', width: '1.2' },
+  { key: 'description', label: 'Description', width: '1.5' },
+])
 
 const itemForm = reactive({
   name: "",

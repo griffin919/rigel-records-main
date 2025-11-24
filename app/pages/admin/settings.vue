@@ -42,112 +42,11 @@
       <div class="tab-content">
         <!-- Users Tab -->
         <div v-if="activeTab === 'users'" class="tab-panel">
-          <!-- Add New User Form -->
-          <section class="card">
-            <h2 class="section-title">Add New User</h2>
-            <form @submit.prevent="handleAddUser" class="user-form">
-              <div class="form-row">
-                <div class="field">
-                  <label>Email *</label>
-                  <input 
-                    v-model="newUser.email" 
-                    type="email" 
-                    required 
-                    placeholder="user@example.com"
-                  />
-                </div>
-                <div class="field">
-                  <label>Display Name *</label>
-                  <input 
-                    v-model="newUser.displayName" 
-                    type="text" 
-                    required 
-                    placeholder="John Doe"
-                  />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="field">
-                  <label>Password *</label>
-                  <input 
-                    v-model="newUser.password" 
-                    type="password" 
-                    required 
-                    minlength="6"
-                    placeholder="Minimum 6 characters"
-                  />
-                </div>
-                <div class="field">
-                  <label>Role *</label>
-                  <select v-model="newUser.role" required>
-                    <option value="attendant">Attendant</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" class="btn" :disabled="submittingUser">
-                <span v-if="submittingUser" class="btn-spinner"></span>
-                {{ submittingUser ? 'Adding User...' : 'Add User' }}
-              </button>
-            </form>
-          </section>
-
-          <!-- Users List -->
-          <section class="card">
-            <h2 class="section-title">Existing Users ({{ users.length }})</h2>
-            
-            <!-- Search Bar -->
-            <div class="search-bar">
-              <MagnifyingGlassIcon class="search-icon" />
-              <input 
-                v-model="searchQuery" 
-                type="text" 
-                placeholder="Search by email or name..."
-              />
-            </div>
-
-            <div v-if="filteredUsers.length === 0" class="empty-state">
-              <p>No users found</p>
-            </div>
-
-            <div v-else class="overflow-x-auto">
-              <table class="table users-mobile">
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>Display Name</th>
-                    <th>Role</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="user in filteredUsers" :key="user.id">
-                    <td data-label="Email">{{ user.email }}</td>
-                    <td data-label="Name">{{ user.displayName }}</td>
-                    <td data-label="Role">
-                      <span class="badge" :class="user.role">{{ user.role }}</span>
-                    </td>
-                    <td data-label="Created">{{ formatDate(user.createdAt) }}</td>
-                    <td data-label="Action">
-                      <button 
-                        @click="handleDeleteUser(user)" 
-                        class="btn-small btn-danger"
-                        :disabled="user.id === currentUserId"
-                        title="Delete user"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+          <Users />
         </div>
 
         <!-- Items Tab -->
-        <div v-if="activeTab === 'items'" class="table users-mobile">
+        <div v-if="activeTab === 'items'" class="tab-panel">
           
           <!-- Add/Edit Item Modal -->
           <div v-if="showItemModal" class="modal-backdrop" @click.self="closeItemModal">
@@ -207,6 +106,7 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useItems } from "~/composables/useItems";
 import { useAuth } from '~/composables/useAuth';
 import { useNotification } from "~/composables/useNotification";
+import Users from '~/components/users.vue';
 import { 
   UsersIcon, 
   CubeIcon, 
@@ -230,28 +130,6 @@ const isLoading = ref(false);
 const loadError = ref('');
 const activeTab = ref('users');
 
-// Users
-const users = ref([]);
-const searchQuery = ref('');
-const submittingUser = ref(false);
-const newUser = ref({
-  email: '',
-  displayName: '',
-  password: '',
-  role: 'attendant'
-});
-
-const currentUserId = computed(() => currentUser.value?.uid);
-
-const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value;
-  const query = searchQuery.value.toLowerCase();
-  return users.value.filter(u => 
-    u.email.toLowerCase().includes(query) || 
-    u.displayName.toLowerCase().includes(query)
-  );
-});
-
 // Items
 const items = ref([]);
 const submittingItem = ref(false);
@@ -270,10 +148,7 @@ onMounted(async () => {
   isLoading.value = true;
   loadError.value = '';
   try {
-    await Promise.all([
-      fetchUsers(),
-      fetchItems()
-    ]);
+    await fetchItems();
   } catch (err) {
     console.error('Load error:', err);
     loadError.value = err?.message || 'Failed to load data';
@@ -282,82 +157,6 @@ onMounted(async () => {
     isLoading.value = false;
   }
 });
-
-// User Functions
-async function fetchUsers() {
-  try {
-    const usersCol = collection($db, 'users');
-    const snapshot = await getDocs(usersCol);
-    users.value = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-  } catch (err) {
-    console.error('Error fetching users:', err);
-    throw err;
-  }
-}
-
-async function handleAddUser() {
-  submittingUser.value = true;
-  try {
-    const result = await registerUser(
-      newUser.value.email,
-      newUser.value.password,
-      newUser.value.displayName,
-      newUser.value.role
-    );
-    
-    if (result.success) {
-      success('User added successfully');
-      newUser.value = {
-        email: '',
-        displayName: '',
-        password: '',
-        role: 'attendant'
-      };
-      await fetchUsers();
-    } else {
-      error(result.message || 'Failed to add user');
-    }
-  } catch (err) {
-    console.error('Error adding user:', err);
-    error('An error occurred while adding the user');
-  } finally {
-    submittingUser.value = false;
-  }
-}
-
-async function handleDeleteUser(user) {
-  if (user.id === currentUserId.value) {
-    error('You cannot delete your own account');
-    return;
-  }
-
-  if (!confirm(`Are you sure you want to delete ${user.email}?`)) {
-    return;
-  }
-
-  try {
-    const userDoc = doc($db, 'users', user.id);
-    await deleteDoc(userDoc);
-    success('User deleted successfully');
-    await fetchUsers();
-  } catch (err) {
-    console.error('Error deleting user:', err);
-    error('Failed to delete user');
-  }
-}
-
-function formatDate(timestamp) {
-  if (!timestamp) return 'N/A';
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-}
 
 // Item Functions
 async function fetchItems() {

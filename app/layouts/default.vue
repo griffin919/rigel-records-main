@@ -8,7 +8,7 @@
    
 
     <!-- Content slot -->
-     <div style="width: 100%; padding: 20px;"> 
+     <div style="width: 100%;"> 
       <slot />
     </div>
     </div>

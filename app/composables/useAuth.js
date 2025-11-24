@@ -95,20 +95,27 @@ export const useAuth = () => {
   }
 
   // Register new user (admin only)
-  const registerUser = async (email, password, displayName, role) => {
+  const registerUser = async (email, password, displayName, role, companyId = null) => {
     const { $auth, $db } = useNuxtApp()
     
     try {
       const result = await createUserWithEmailAndPassword($auth, email, password)
       
       // Create user document in Firestore
-      await setDoc(doc($db, 'users', result.user.uid), {
+      const userDoc = {
         email,
         displayName,
         role,
         createdAt: new Date().toISOString(),
         createdBy: user.value?.uid || 'system'
-      })
+      }
+      
+      // Add companyId for company-manager and driver roles
+      if (companyId && (role === 'company-manager' || role === 'driver')) {
+        userDoc.companyId = companyId
+      }
+      
+      await setDoc(doc($db, 'users', result.user.uid), userDoc)
       
       // Sign out the newly created user (don't switch to their account)
       await signOut($auth)

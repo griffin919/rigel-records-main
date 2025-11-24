@@ -76,7 +76,14 @@ async function handleLogin() {
       success(`Welcome back, ${result.user.displayName}!`)
       
       // Redirect based on role
-      const redirectPath = result.user.role === 'admin' ? '/admin/companies' : '/'
+      let redirectPath = '/'
+      if (result.user.role === 'admin') {
+        redirectPath = '/admin/companies'
+      } else if (result.user.role === 'company') {
+        redirectPath = '/company'
+      } else if (result.user.role === 'driver') {
+        redirectPath = '/driver'
+      }
       await navigateTo(redirectPath, { replace: true })
     } else {
       error(result.error || 'Login failed. Please check your credentials.')

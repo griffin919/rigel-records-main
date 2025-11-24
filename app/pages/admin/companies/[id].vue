@@ -56,57 +56,43 @@
               </div>
             </div>
 
-            <div v-if="companyTransactions.length" class="responsive-table">
-              <div v-for="t in companyTransactions" :key="t.id" class="table-row">
-                <div class="table-cell">
-                  <div class="cell-label">Driver</div>
-                  <div class="cell-value font-medium">{{ t.driverName }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Phone</div>
-                  <div class="cell-value">{{ t.phone }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Car</div>
-                  <div class="cell-value">{{ t.carNumber }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Item</div>
-                  <div class="cell-value">{{ t.itemName || 'Fuel' }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Qty</div>
-                  <div class="cell-value">{{ t.quantity || t.fuelQuantity }} {{ t.itemUnit || 'L' }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Cost</div>
-                  <div class="cell-value font-semibold">GHS {{ t.cost }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Date</div>
-                  <div class="cell-value text-muted-foreground text-sm">{{ formatDate(t.createdAt) }}</div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Status</div>
-                  <div class="cell-value">
-                    <span :class="['status-badge', t.paid ? 'status-paid' : 'status-unpaid']">
-                      {{ t.paid ? "Paid" : "Unpaid" }}
-                    </span>
-                  </div>
-                </div>
-                <div class="table-cell">
-                  <div class="cell-label">Action</div>
-                  <div class="cell-value">
-                    <button 
-                      class="btn-small" 
-                      :class="t.paid ? 'btn-warning' : 'btn-success'"
-                      @click="togglePaidStatus(t)"
-                    >
-                      {{ t.paid ? 'Mark Unpaid' : 'Mark Paid' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <div v-if="companyTransactions.length" class="responsive-table-wrapper">
+              <CompactTable
+                :columns="transactionColumns"
+                :items="companyTransactions"
+                empty-message="No transactions yet for this company">
+                <template #cell-itemName="{ item }">
+                  {{ item.itemName || 'Fuel' }}
+                </template>
+
+                <template #cell-quantity="{ item }">
+                  {{ item.quantity || item.fuelQuantity }} {{ item.itemUnit || 'L' }}
+                </template>
+
+                <template #cell-cost="{ item }">
+                  <span class="font-semibold">GHS {{ item.cost }}</span>
+                </template>
+
+                <template #cell-createdAt="{ item }">
+                  <span class="text-muted-foreground text-sm">{{ formatDate(item.createdAt) }}</span>
+                </template>
+
+                <template #cell-paid="{ item }">
+                  <span :class="['status-badge', item.paid ? 'status-paid' : 'status-unpaid']">
+                    {{ item.paid ? 'Paid' : 'Unpaid' }}
+                  </span>
+                </template>
+
+                <template #row-actions="{ item }">
+                  <button 
+                    class="btn-small" 
+                    :class="item.paid ? 'btn-warning' : 'btn-success'"
+                    @click="togglePaidStatus(item)"
+                  >
+                    {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                  </button>
+                </template>
+              </CompactTable>
             </div>
 
             <div v-else class="empty-state">
@@ -194,6 +180,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
+import CompactTable from "~/components/CompactTable.vue";
 import { 
   ArrowLeftIcon,
   DocumentTextIcon,
@@ -237,6 +224,17 @@ const totalOwed = computed(() => {
     .filter((t) => !t.paid)
     .reduce((sum, t) => sum + (Number(t.cost) || 0), 0);
 });
+
+const transactionColumns = computed(() => [
+  { key: 'driverName', label: 'Driver', width: '1.2' },
+  { key: 'phone', label: 'Phone', width: '1' },
+  { key: 'carNumber', label: 'Car', width: '1' },
+  { key: 'itemName', label: 'Item', width: '1' },
+  { key: 'quantity', label: 'Qty', width: '0.8' },
+  { key: 'cost', label: 'Cost', width: '1' },
+  { key: 'createdAt', label: 'Date', width: '1.2' },
+  { key: 'paid', label: 'Status', width: '1' },
+]);
 
 onMounted(async () => {
   isLoading.value = true;

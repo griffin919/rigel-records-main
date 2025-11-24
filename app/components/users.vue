@@ -4,8 +4,8 @@
       <h1>User Management</h1>
       <p class="subtitle">Manage admin and attendant accounts</p>
 
-      <!-- Add New User Form -->
-      <section class="card">
+      <!-- Add New User Form (Admin Only) -->
+      <section v-if="isAdmin" class="card">
         <h2>Add New User</h2>
         <form @submit.prevent="handleAddUser" class="user-form">
           <div class="form-row">
@@ -43,7 +43,23 @@
               <label>Role *</label>
               <select v-model="newUser.role" required>
                 <option value="attendant">Attendant</option>
+                <option value="company">Company</option>
+                <option value="company-manager">Company Manager</option>
+                <option value="driver">Driver</option>
+                <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <!-- Company Selection (for company-manager and driver roles) -->
+          <div v-if="newUser.role === 'company-manager' || newUser.role === 'driver'" class="form-row">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Company *</label>
+              <select v-model="newUser.companyId" required>
+                <option value="">Select a company</option>
+                <option v-for="company in companies" :key="company.id" :value="company.id">
+                  {{ company.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -52,6 +68,10 @@
             {{ loading ? 'Adding User...' : 'Add User' }}
           </button>
         </form>
+      </section>
+      <section v-else class="card card-restricted">
+        <h2>Add New User</h2>
+        <p class="restricted-message">Only admins can add new users</p>
       </section>
 
       <!-- Users List -->
@@ -73,45 +93,28 @@
           <p>Loading users...</p>
         </div>
         
-        <div v-else-if="filteredUsers.length === 0" class="empty-state">
-          <p>No users found</p>
-        </div>
-
-        <div v-else class="responsive-table">
-          <div v-for="user in filteredUsers" :key="user.id" class="table-row">
-            <div class="table-cell">
-              <div class="cell-label">Email</div>
-              <div class="cell-value">{{ user.email }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Display Name</div>
-              <div class="cell-value">{{ user.displayName }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Role</div>
-              <div class="cell-value">
-                <span class="badge" :class="user.role">{{ user.role }}</span>
-              </div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Created</div>
-              <div class="cell-value">{{ formatDate(user.createdAt) }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Actions</div>
-              <div class="cell-value">
-                <button 
-                  @click="handleDeleteUser(user)" 
-                  class="btn-delete"
-                  :disabled="user.id === currentUserId"
-                  title="Delete user"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CompactTable
+          v-else
+          :columns="userColumns"
+          :items="filteredUsers"
+          empty-message="No users found">
+          <template #cell-role="{ item }">
+            <span class="badge" :class="item.role">{{ item.role }}</span>
+          </template>
+          <template #cell-createdAt="{ item }">
+            {{ formatDate(item.createdAt) }}
+          </template>
+          <template #row-actions="{ item }">
+            <button 
+              @click="handleDeleteUser(item)" 
+              class="btn-delete"
+              :disabled="item.id === currentUserId || item.role === 'admin' || !isAdmin"
+              :title="item.role === 'admin' ? 'Cannot delete admin accounts' : !isAdmin ? 'Only admins can delete' : 'Delete user'"
+            >
+              Delete
+            </button>
+          </template>
+        </CompactTable>
       </section>
     </div>
   </div>
@@ -120,31 +123,38 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuth } from '~/composables/useAuth';
+import { useCompanies } from '~/composables/useCompanies';
 import { useNotification } from '~/composables/useNotification';
+import CompactTable from '~/components/CompactTable.vue';
 
-definePageMeta({
-  layout: 'admin',
-  middleware: ['auth', 'admin']
-});
+// definePageMeta({
+//   layout: 'admin',
+//   middleware: ['auth', 'admin']
+// });
 
 const { $db, $auth } = useNuxtApp();
-const { registerUser, user: currentUser } = useAuth();
+const { registerUser, user: currentUser, initAuth } = useAuth();
+const { getCompanies } = useCompanies();
 const { success, error: showError } = useNotification();
 const { collection, getDocs, doc, deleteDoc } = await import('firebase/firestore');
 
 const loading = ref(false);
 const loadingUsers = ref(false);
 const users = ref([]);
+const companies = ref([]);
 const searchQuery = ref('');
 
 const newUser = ref({
   email: '',
   displayName: '',
   password: '',
-  role: 'attendant'
+  role: 'attendant',
+  companyId: ''
 });
 
 const currentUserId = computed(() => currentUser.value?.uid);
+const currentUserRole = computed(() => currentUser.value?.role);
+const isAdmin = computed(() => currentUserRole.value === 'admin');
 
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value;
@@ -154,6 +164,13 @@ const filteredUsers = computed(() => {
     u.displayName.toLowerCase().includes(query)
   );
 });
+
+const userColumns = computed(() => [
+  { key: 'email', label: 'Email', width: '1.5' },
+  { key: 'displayName', label: 'Display Name', width: '1.5' },
+  { key: 'role', label: 'Role', width: '1' },
+  { key: 'createdAt', label: 'Created', width: '1.2' },
+]);
 
 async function fetchUsers() {
   loadingUsers.value = true;
@@ -172,6 +189,15 @@ async function fetchUsers() {
   }
 }
 
+async function fetchCompanies() {
+  try {
+    companies.value = await getCompanies();
+  } catch (err) {
+    console.error('Error fetching companies:', err);
+    showError('Failed to load companies');
+  }
+}
+
 async function handleAddUser() {
   loading.value = true;
   try {
@@ -179,7 +205,8 @@ async function handleAddUser() {
       newUser.value.email,
       newUser.value.password,
       newUser.value.displayName,
-      newUser.value.role
+      newUser.value.role,
+      newUser.value.companyId
     );
     
     if (result.success) {
@@ -189,7 +216,8 @@ async function handleAddUser() {
         email: '',
         displayName: '',
         password: '',
-        role: 'attendant'
+        role: 'attendant',
+        companyId: ''
       };
       // Refresh users list
       await fetchUsers();
@@ -205,6 +233,16 @@ async function handleAddUser() {
 }
 
 async function handleDeleteUser(user) {
+  if (!isAdmin.value) {
+    showError('Only admins can delete users');
+    return;
+  }
+
+  if (user.role === 'admin') {
+    showError('Admin accounts cannot be deleted');
+    return;
+  }
+
   if (user.id === currentUserId.value) {
     showError('You cannot delete your own account');
     return;
@@ -237,6 +275,7 @@ function formatDate(timestamp) {
 
 onMounted(() => {
   fetchUsers();
+  fetchCompanies();
 });
 </script>
 
@@ -256,6 +295,16 @@ onMounted(() => {
   padding: 24px;
   margin-bottom: 24px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card.card-restricted {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.restricted-message {
+  color: #6b7280;
+  margin: 0;
 }
 
 .card h2 {
@@ -388,6 +437,26 @@ onMounted(() => {
 .badge.attendant {
   background: #f3e5f5;
   color: #7b1fa2;
+}
+
+.badge.company {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.badge.company-manager {
+  background: #e0f2f1;
+  color: #00695c;
+}
+
+.badge.driver {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge.manager {
+  background: #fce4ec;
+  color: #c2185b;
 }
 
 .btn-delete {

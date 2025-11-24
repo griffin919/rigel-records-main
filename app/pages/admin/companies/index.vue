@@ -62,38 +62,17 @@
       <section>
         <h3 class="text-xl font-semibold mb-4">All Companies ({{ companies.length }})</h3>
 
-        <div v-if="companies.length" class="responsive-table">
-          <div v-for="c in companies" :key="c.id" class="table-row">
-            <div class="table-cell">
-              <div class="cell-label">Company Name</div>
-              <div class="cell-value">{{ c.name }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Contact Person</div>
-              <div class="cell-value">{{ c.contactPerson }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Location</div>
-              <div class="cell-value">{{ c.location }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Phone</div>
-              <div class="cell-value">{{ c.phone }}</div>
-            </div>
-            <div class="table-cell">
-              <div class="cell-label">Action</div>
-              <div class="cell-value">
-                <button class="btn secondary" @click="router.push(`/admin/companies/${c.id}`)">
-                  <EyeIcon class="btn-icon-sm" />
-                  View Details
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-center text-muted-foreground py-8">
-          No companies found
-        </div>
+        <CompactTable
+          :columns="companyColumns"
+          :items="companies"
+          empty-message="No companies found">
+          <template #row-actions="{ item }">
+            <button class="btn secondary" @click="router.push(`/admin/companies/${item.id}`)">
+              <EyeIcon class="btn-icon-sm" />
+              View Details
+            </button>
+          </template>
+        </CompactTable>
       </section>
 
     </template>
@@ -101,11 +80,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
+import CompactTable from "~/components/CompactTable.vue";
 import { PlusIcon, EyeIcon } from '@heroicons/vue/24/outline';
 
 definePageMeta({
@@ -123,6 +103,13 @@ const companies = ref([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const loadError = ref('')
+
+const companyColumns = computed(() => [
+  { key: 'name', label: 'Company Name', width: '1.5' },
+  { key: 'contactPerson', label: 'Contact Person', width: '1.2' },
+  { key: 'location', label: 'Location', width: '1.2' },
+  { key: 'phone', label: 'Phone', width: '1' },
+])
 
 onMounted(async () => {
   isLoading.value = true

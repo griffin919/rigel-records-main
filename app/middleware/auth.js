@@ -13,9 +13,18 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo('/login', { replace: true })
   }
   
-  // If authenticated and on login page, redirect to appropriate home
+  // If authenticated and on login page, redirect to appropriate dashboard
   if (isAuthenticated.value && to.path === '/login') {
-    const redirectPath = user.value?.role === 'admin' ? '/admin/companies' : '/'
+    let redirectPath = '/'
+    if (user.value?.role === 'admin') {
+      redirectPath = '/admin/companies'
+    } else if (user.value?.role === 'manager') {
+      redirectPath = '/admin/companies'
+    } else if (user.value?.role === 'company' || user.value?.role === 'company-manager') {
+      redirectPath = '/company'
+    } else if (user.value?.role === 'driver') {
+      redirectPath = '/driver'
+    }
     return navigateTo(redirectPath, { replace: true })
   }
 })
