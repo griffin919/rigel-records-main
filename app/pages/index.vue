@@ -421,6 +421,9 @@ async function submitEntry() {
 
   isSubmitting.value = true
   try {
+    // Calculate points earned: item points × quantity
+    const pointsEarned = (form.selectedItem.points || 0) * form.quantity
+
     // Submit transaction
     await addTransaction({
       companyId: form.company.id,
@@ -433,6 +436,7 @@ async function submitEntry() {
       itemUnit: form.selectedItem.unit,
       quantity: form.quantity,
       cost: form.cost,
+      pointsEarned: pointsEarned,
       couponNumber: form.couponNumber || '',
       photoURL: form.photoURL || '',
       paid: false,

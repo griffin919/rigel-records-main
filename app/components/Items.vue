@@ -49,6 +49,11 @@
                 <small class="field-hint">Leave blank if price varies</small>
               </div>
               <div class="field">
+                <label>Points per Unit</label>
+                <input v-model.number="itemForm.points" type="number" step="1" min="0" placeholder="0" required />
+                <small class="field-hint">Loyalty points earned per unit purchased</small>
+              </div>
+              <div class="field">
                 <label>Description - Optional</label>
                 <textarea v-model="itemForm.description" rows="3" placeholder="Additional details about this item"></textarea>
               </div>
@@ -93,6 +98,10 @@
 
           <template #cell-price="{ item }">
             <span>{{ item.price ? `GHS ${item.price.toFixed(2)}` : 'Variable' }}</span>
+          </template>
+
+          <template #cell-points="{ item }">
+            <span class="font-semibold text-yellow-600">{{ item.points || 0 }} pts</span>
           </template>
 
           <template #cell-description="{ item }">
@@ -141,6 +150,7 @@ const itemColumns = computed(() => [
   { key: 'unit', label: 'Unit', width: '1' },
   { key: 'color', label: 'Color', width: '1' },
   { key: 'price', label: 'Price (GHS)', width: '1.2' },
+  { key: 'points', label: 'Points', width: '0.8' },
   { key: 'description', label: 'Description', width: '1.5' },
 ])
 
@@ -149,6 +159,7 @@ const itemForm = reactive({
   unit: "",
   color: "#3b82f6",
   price: null,
+  points: 0,
   description: ""
 });
 
@@ -178,6 +189,7 @@ function openEditItem(item) {
   itemForm.unit = item.unit
   itemForm.color = item.color || "#3b82f6"
   itemForm.price = item.price || null
+  itemForm.points = item.points || 0
   itemForm.description = item.description || ""
   showItemModal.value = true
 }
@@ -193,6 +205,7 @@ function resetForm() {
   itemForm.unit = ""
   itemForm.color = "#3b82f6"
   itemForm.price = null
+  itemForm.points = 0
   itemForm.description = ""
 }
 
@@ -209,6 +222,7 @@ async function handleSaveItem() {
       unit: itemForm.unit.trim(),
       color: itemForm.color.trim(),
       price: itemForm.price || 0,
+      points: itemForm.points || 0,
       description: itemForm.description.trim()
     }
 

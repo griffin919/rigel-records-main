@@ -66,6 +66,10 @@
           :columns="companyColumns"
           :items="companies"
           empty-message="No companies found">
+          <template #cell-totalPoints="{ item }">
+            <span class="font-bold text-yellow-600">{{ item.totalPoints || 0 }} pts</span>
+          </template>
+
           <template #row-actions="{ item }">
             <button class="btn secondary" @click="router.push(`/admin/companies/${item.id}`)">
               <EyeIcon class="btn-icon-sm" />
@@ -109,6 +113,7 @@ const companyColumns = computed(() => [
   { key: 'contactPerson', label: 'Contact Person', width: '1.2' },
   { key: 'location', label: 'Location', width: '1.2' },
   { key: 'phone', label: 'Phone', width: '1' },
+  { key: 'totalPoints', label: 'Total Points', width: '1' },
 ])
 
 onMounted(async () => {
@@ -117,6 +122,13 @@ onMounted(async () => {
   try {
     transactions.value = (await getTransactions()) || []
     companies.value = (await getCompanies()) || []
+    
+    // Calculate total points for each company
+    companies.value = companies.value.map(company => {
+      const companyTransactions = transactions.value.filter(t => t.companyId === company.id)
+      const totalPoints = companyTransactions.reduce((sum, t) => sum + (t.pointsEarned || 0), 0)
+      return { ...company, totalPoints }
+    })
   } catch (err) {
     console.error('Load error:', err)
     loadError.value = err?.message || 'Failed to load data'

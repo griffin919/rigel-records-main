@@ -33,6 +33,7 @@ export default defineEventHandler(async (event) => {
       unit: body.unit,
       color: body.color || "#3b82f6",
       price: body.price || 0,
+      points: body.points || 0,
       description: body.description || "",
       createdAt: serverTimestamp()
     }

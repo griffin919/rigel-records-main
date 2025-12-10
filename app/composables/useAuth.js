@@ -35,7 +35,8 @@ export const useAuth = () => {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: userData?.displayName || firebaseUser.email,
-            role: userData?.role || 'attendant'
+            role: userData?.role || 'attendant',
+            companyId: userData?.companyId || null
           }
           userRole.value = userData?.role || 'attendant'
         } else {
@@ -68,7 +69,8 @@ export const useAuth = () => {
         uid: result.user.uid,
         email: result.user.email,
         displayName: userData.displayName || result.user.email,
-        role: userData.role
+        role: userData.role,
+        companyId: userData.companyId || null
       }
       userRole.value = userData.role
       

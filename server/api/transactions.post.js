@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
       quantity: body.quantity || body.fuelQuantity || 0,
       fuelQuantity: body.fuelQuantity || body.quantity || 0, // Keep for backward compatibility
       cost: body.cost || 0,
+      pointsEarned: body.pointsEarned || 0,
       couponNumber: body.couponNumber || "",
       photoURL: body.photoURL || "",
       paid: !!body.paid,

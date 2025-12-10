@@ -44,6 +44,19 @@
             </div>
           </div>
 
+          <div class="overview-card points-card">
+            <div class="card-icon points-icon">
+              <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </div>
+            <div class="card-content">
+              <p class="card-label">Loyalty Points</p>
+              <p class="card-value points-value">{{ companyStats.totalPoints }}</p>
+              <p class="card-detail">Earned from purchases</p>
+            </div>
+          </div>
+
           <div class="overview-card">
             <div class="card-icon">
               <UserGroupIcon class="icon" />
@@ -120,6 +133,10 @@
             <span class="amount-value">GHS {{ item.cost }}</span>
           </template>
 
+          <template #cell-points="{ item }">
+            <span class="points-badge">{{ item.pointsEarned || 0 }} pts</span>
+          </template>
+
           <template #cell-status="{ item }">
             <span :class="['status-badge', item.paid ? 'paid' : 'pending']">
               {{ item.paid ? 'Paid' : 'Pending' }}
@@ -138,8 +155,6 @@
         </CompactTable>
       </div>
       </div>
-
-    
     </div>
   </div>
 </template>
@@ -184,6 +199,7 @@ const transactionColumns = computed(() => [
   { key: 'item', label: 'Item', width: '1' },
   { key: 'quantity', label: 'Qty', width: '0.8' },
   { key: 'amount', label: 'Amount', width: '1' },
+  { key: 'points', label: 'Points', width: '0.8' },
   { key: 'status', label: 'Status', width: '1' },
   { key: 'date', label: 'Date', width: '1.2' },
 ])
@@ -235,10 +251,12 @@ const companyStats = computed(() => {
   const paidTransactions = todayTransactions.filter(t => t.paid)
   const pendingTransactions = todayTransactions.filter(t => !t.paid)
   const uniqueDrivers = new Set(todayTransactions.map(t => t.driverName))
+  const totalPoints = transactions.value.reduce((sum, t) => sum + (parseFloat(t.pointsEarned) || 0), 0)
 
   return {
     totalRevenue: transactions.value.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2),
     totalTransactions: transactions.value.length,
+    totalPoints: totalPoints.toFixed(0),
     activeDrivers: uniqueDrivers.size,
     driverTransactions: todayTransactions.length,
     paidOut: paidTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2),
@@ -525,6 +543,19 @@ function navigateToDrivers() {
   color: white;
 }
 
+.points-card {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #fbbf24;
+}
+
+.points-icon {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.points-value {
+  color: #d97706;
+}
+
 .card-content {
   display: flex;
   flex-direction: column;
@@ -686,6 +717,12 @@ function navigateToDrivers() {
 .amount-value {
   font-weight: 600;
   color: #111827;
+}
+
+.points-badge {
+  font-weight: 700;
+  color: #d97706;
+  font-size: 0.875rem;
 }
 
 .status-badge {

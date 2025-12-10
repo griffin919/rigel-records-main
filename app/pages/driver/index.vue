@@ -3,24 +3,16 @@
     <!-- Header -->
     <div class="driver-header">
       <div class="header-content">
-        <h1>Driver Dashboard</h1>
-        <p class="driver-info" v-if="driverName">{{ driverName }}</p>
+        <h1 v-if="companyName"> {{ companyName }} </h1>
+        <p class="driver-info">Driver Dashboard</p>
       </div>
-      <button class="logout-btn" @click="logout">
+      <!-- <button class="logout-btn" @click="logout">
         <ArrowRightOnRectangleIcon class="icon" />
-      </button>
+      </button> -->
     </div>
 
     <!-- Main Content -->
     <div class="driver-main">
-      <!-- Welcome Card -->
-      <div class="welcome-card">
-        <div class="welcome-icon">
-          <TruckIcon class="icon-large" />
-        </div>
-        <h2>{{ greetingMessage }}</h2>
-        <p>Track your daily transactions and earnings</p>
-      </div>
 
       <!-- Stats Cards -->
       <div class="stats-grid">
@@ -30,7 +22,7 @@
           </div>
           <div class="stat-content">
             <p class="stat-label">Today's Earnings</p>
-            <p class="stat-value">GHS {{ driverStats.todayEarnings }}</p>
+            <p class="stat-value"> {{ driverStats.todayEarnings }}</p>
           </div>
         </div>
 
@@ -50,7 +42,7 @@
           </div>
           <div class="stat-content">
             <p class="stat-label">Paid</p>
-            <p class="stat-value">GHS {{ driverStats.paidAmount }}</p>
+            <p class="stat-value"> {{ driverStats.paidAmount }}</p>
           </div>
         </div>
 
@@ -60,7 +52,7 @@
           </div>
           <div class="stat-content">
             <p class="stat-label">Pending</p>
-            <p class="stat-value">GHS {{ driverStats.pendingAmount }}</p>
+            <p class="stat-value"> {{ driverStats.pendingAmount }}</p>
           </div>
         </div>
       </div>
@@ -68,10 +60,7 @@
       <!-- Recent Transactions -->
       <div class="transactions-section">
         <h3>Your Recent Transactions</h3>
-        <CompactTable 
-          :columns="transactionColumns" 
-          :items="driverTransactions"
-          empty-message="No transactions yet">
+        <CompactTable :columns="transactionColumns" :items="driverTransactions" empty-message="No transactions yet">
           <template #cell-amount="{ item }">
             <span class="amount-badge">GHS {{ item.cost }}</span>
           </template>
@@ -95,6 +84,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useTransactions } from '~/composables/useTransactions'
+import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
 import CompactTable from '~/components/CompactTable.vue'
 import {
@@ -113,9 +103,11 @@ definePageMeta({
 
 const { user, logout } = useAuth()
 const { getTransactions } = useTransactions()
+const { getCompanies } = useCompanies()
 const { error } = useNotification()
 
 const driverName = ref('')
+const companyName = ref('')
 const driverTransactions = ref([])
 const isLoading = ref(true)
 
@@ -156,6 +148,15 @@ onMounted(async () => {
   try {
     if (user.value) {
       driverName.value = user.value.displayName || user.value.email || 'Driver'
+
+      // Fetch company name if companyId exists
+      if (user.value.companyId) {
+        const companies = await getCompanies()
+        const company = companies.find(c => c.id === user.value.companyId)
+        if (company) {
+          companyName.value = company.name
+        }
+      }
     }
     driverTransactions.value = await getTransactions()
   } catch (err) {
@@ -206,6 +207,13 @@ function formatDate(dt) {
   margin: 0.5rem 0 0 0;
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+.company-info {
+  margin: 0.25rem 0 0 0;
+  color: #FFC800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .logout-btn {
@@ -311,8 +319,8 @@ function formatDate(dt) {
 }
 
 .stat-icon .icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.3rem;
+  height: 1.3rem;
   color: white;
 }
 
@@ -324,7 +332,7 @@ function formatDate(dt) {
 
 .stat-label {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -333,8 +341,8 @@ function formatDate(dt) {
 
 .stat-value {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: #111827;
 }
 
@@ -422,7 +430,7 @@ function formatDate(dt) {
 
 @media (max-width: 480px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .welcome-card {

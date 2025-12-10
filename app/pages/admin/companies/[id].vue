@@ -18,6 +18,14 @@
         </button>
         <h1 class="text-3xl font-bold tracking-tight mb-2 mt-4">{{ currentCompany.name }}</h1>
         <p class="text-muted-foreground">{{ currentCompany.location }} • {{ currentCompany.phone }}</p>
+        
+        <!-- Points Badge -->
+        <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 border-2 border-yellow-400 rounded-lg">
+          <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          <span class="text-lg font-bold text-yellow-600">{{ totalPoints.toFixed(0) }} Loyalty Points</span>
+        </div>
       </div>
 
       <!-- Tabs -->
@@ -71,6 +79,10 @@
 
                 <template #cell-cost="{ item }">
                   <span class="font-semibold">GHS {{ item.cost }}</span>
+                </template>
+
+                <template #cell-pointsEarned="{ item }">
+                  <span class="font-bold text-yellow-600">{{ item.pointsEarned || 0 }} pts</span>
                 </template>
 
                 <template #cell-createdAt="{ item }">
@@ -225,6 +237,11 @@ const totalOwed = computed(() => {
     .reduce((sum, t) => sum + (Number(t.cost) || 0), 0);
 });
 
+const totalPoints = computed(() => {
+  return companyTransactions.value
+    .reduce((sum, t) => sum + (Number(t.pointsEarned) || 0), 0);
+});
+
 const transactionColumns = computed(() => [
   { key: 'driverName', label: 'Driver', width: '1.2' },
   { key: 'phone', label: 'Phone', width: '1' },
@@ -232,6 +249,7 @@ const transactionColumns = computed(() => [
   { key: 'itemName', label: 'Item', width: '1' },
   { key: 'quantity', label: 'Qty', width: '0.8' },
   { key: 'cost', label: 'Cost', width: '1' },
+  { key: 'pointsEarned', label: 'Points', width: '0.8' },
   { key: 'createdAt', label: 'Date', width: '1.2' },
   { key: 'paid', label: 'Status', width: '1' },
 ]);

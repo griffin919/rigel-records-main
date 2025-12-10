@@ -14,7 +14,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   // Only driver role can access this page
-  if (user.value?.role !== 'driver' || user.value?.role !== 'admin') {
+  if (user.value?.role !== 'driver' && user.value?.role !== 'admin') {
     return navigateTo('/login', { replace: true })
   }
 })
