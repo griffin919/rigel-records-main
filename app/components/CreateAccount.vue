@@ -38,6 +38,19 @@
           />
         </div>
         <div class="form-group">
+          <label>Contact *</label>
+          <input 
+            v-model="formData.contact" 
+            type="tel" 
+            required 
+            placeholder="Phone number"
+            :disabled="isSubmitting"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
           <label>Role *</label>
           <select v-model="formData.role" required :disabled="isSubmitting">
             <option value="">Select role</option>
@@ -49,6 +62,16 @@
               {{ role.label }}
             </option>
           </select>
+        </div>
+        <div v-if="formData.role === 'driver'" class="form-group">
+          <label>Car Number *</label>
+          <input 
+            v-model="formData.carNumber" 
+            type="text" 
+            :required="formData.role === 'driver'"
+            placeholder="Vehicle registration number"
+            :disabled="isSubmitting"
+          />
         </div>
       </div>
 
@@ -113,8 +136,10 @@ const formData = ref({
   email: '',
   displayName: '',
   password: '',
+  contact: '',
   role: '',
-  companyId: ''
+  companyId: '',
+  carNumber: ''
 })
 
 // Role definitions with labels
@@ -170,10 +195,16 @@ const isFormValid = computed(() => {
   const basic = formData.value.email && 
                 formData.value.displayName && 
                 formData.value.password.length >= 6 && 
+                formData.value.contact &&
                 formData.value.role
   
   if (requiresCompany.value) {
     return basic && formData.value.companyId
+  }
+  
+  // Driver role requires car number
+  if (formData.value.role === 'driver') {
+    return basic && formData.value.carNumber
   }
   
   return basic
@@ -218,8 +249,10 @@ const handleSubmit = async () => {
         email: formData.value.email,
         displayName: formData.value.displayName,
         password: formData.value.password,
+        contact: formData.value.contact,
         role: formData.value.role,
         companyId: formData.value.companyId || null,
+        carNumber: formData.value.carNumber || null,
         active: true // New accounts start as active
       }
     })
@@ -240,8 +273,10 @@ const handleSubmit = async () => {
         email: '',
         displayName: '',
         password: '',
+        contact: '',
         role: '',
-        companyId: isCompanyFixed.value ? user.value.companyId : ''
+        companyId: isCompanyFixed.value ? user.value.companyId : '',
+        carNumber: ''
       }
       
       // Emit event for parent component
