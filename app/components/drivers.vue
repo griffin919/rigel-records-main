@@ -178,11 +178,6 @@ import {
   UserGroupIcon
 } from '@heroicons/vue/24/outline'
 
-definePageMeta({
-  layout: 'default',
-  middleware: ['company']
-})
-
 const { user } = useAuth()
 const { success, error } = useNotification()
 const { $auth, $db } = useNuxtApp()
@@ -213,18 +208,49 @@ onMounted(async () => {
 })
 
 async function loadDrivers() {
-  if (!user.value?.uid) return
+  if (!user.value?.uid) {
+    console.log('No user UID found')
+    return
+  }
 
   try {
-    const q = query(
-      collection($db, 'drivers'),
+    console.log('Loading drivers for company:', user.value.uid)
+    
+    // Check users collection with driver role
+    const usersQuery = query(
+      collection($db, 'users'),
+      where('role', '==', 'driver'),
       where('companyId', '==', user.value.uid)
     )
-    const snapshot = await getDocs(q)
-    drivers.value = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
+    const usersSnapshot = await getDocs(usersQuery)
+    console.log('Found driver users:', usersSnapshot.docs.length)
+    
+    if (usersSnapshot.docs.length > 0) {
+      // Load from users collection
+      drivers.value = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().displayName || doc.data().email,
+        email: doc.data().email,
+        phone: doc.data().phone || '',
+        carNumber: doc.data().carNumber || '',
+        active: doc.data().active !== false,
+        createdAt: doc.data().createdAt,
+        ...doc.data()
+      }))
+    } else {
+      // Fallback to drivers collection
+      const q = query(
+        collection($db, 'drivers'),
+        where('companyId', '==', user.value.uid)
+      )
+      const snapshot = await getDocs(q)
+      drivers.value = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    }
+    
+    console.log('Drivers loaded:', drivers.value)
   } catch (err) {
     console.error('Error loading drivers:', err)
     error('Failed to load drivers')

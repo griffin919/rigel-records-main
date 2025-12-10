@@ -153,7 +153,12 @@
             </button>
           </template>
         </CompactTable>
+        </div>
       </div>
+
+      <!-- Drivers Tab -->
+      <div v-show="activeTab === 'drivers'">
+        <Drivers />
       </div>
     </div>
   </div>
@@ -166,6 +171,7 @@ import { useTransactions } from '~/composables/useTransactions'
 import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
 import CompactTable from '~/components/CompactTable.vue'
+import Drivers from '~/components/drivers.vue'
 import {
   BanknotesIcon,
   UserGroupIcon,
@@ -184,6 +190,7 @@ definePageMeta({
 
 const { user, logout } = useAuth()
 const { getTransactions } = useTransactions()
+const { getCompanies } = useCompanies()
 const { success, error } = useNotification()
 
 const companyName = ref('')
@@ -207,7 +214,14 @@ const transactionColumns = computed(() => [
 onMounted(async () => {
   try {
     if (user.value) {
-      companyName.value = user.value.displayName || user.value.email || 'Company'
+      // Try to get company name from companies collection
+      const companies = await getCompanies()
+      const company = companies.find(c => c.id === user.value.uid)
+      if (company) {
+        companyName.value = company.name
+      } else {
+        companyName.value = user.value.displayName || user.value.email || 'Company'
+      }
     }
     transactions.value = await getTransactions()
   } catch (err) {
