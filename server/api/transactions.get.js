@@ -19,25 +19,50 @@ const db = getFirestore(app)
 
 export default defineEventHandler(async (event) => {
   try {
-    // Get userId and userRole from query parameters
+    // Get userId, userRole, and companyId from query parameters
     const queryParams = getQuery(event)
     const userId = queryParams.userId
     const userRole = queryParams.userRole || 'attendant'
+    const companyId = queryParams.companyId
     
     // Build query based on role
     let q
-    if (userRole === 'admin') {
-      // Admins see all transactions
+    
+    if (userRole === 'admin' || userRole === 'manager') {
+      // Admins and managers see all transactions
       q = query(collection(db, 'transactions'), orderBy('createdAt', 'desc'))
-    } else if (userId) {
-      // Attendants only see their own transactions
+    } else if (userRole === 'company' || userRole === 'company-manager') {
+      // Company and company-managers only see transactions for their company
+      if (!companyId) {
+        return []
+      }
+      q = query(
+        collection(db, 'transactions'), 
+        where('companyId', '==', companyId),
+        orderBy('createdAt', 'desc')
+      )
+    } else if (userRole === 'driver') {
+      // Drivers only see their own transactions
+      if (!userId) {
+        return []
+      }
+      q = query(
+        collection(db, 'transactions'), 
+        where('driverId', '==', userId),
+        orderBy('createdAt', 'desc')
+      )
+    } else if (userRole === 'attendant') {
+      // Attendants see transactions they served
+      if (!userId) {
+        return []
+      }
       q = query(
         collection(db, 'transactions'), 
         where('servedById', '==', userId),
         orderBy('createdAt', 'desc')
       )
     } else {
-      // No user ID, return empty array
+      // Unknown role, return empty array
       return []
     }
     

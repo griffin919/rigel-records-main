@@ -9,6 +9,11 @@ export const useTransactions = () => {
       if (user.value?.uid) {
         params.userId = user.value.uid
         params.userRole = userRole.value || 'attendant'
+        
+        // Include companyId for company and company-manager roles
+        if (user.value.companyId && (userRole.value === 'company' || userRole.value === 'company-manager')) {
+          params.companyId = user.value.companyId
+        }
       }
       
       return await $fetch('/api/transactions', { 

@@ -4,75 +4,11 @@
       <h1>User Management</h1>
       <p class="subtitle">Manage admin and attendant accounts</p>
 
-      <!-- Add New User Form (Admin Only) -->
-      <section v-if="isAdmin" class="card">
-        <h2>Add New User</h2>
-        <form @submit.prevent="handleAddUser" class="user-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Email *</label>
-              <input 
-                v-model="newUser.email" 
-                type="email" 
-                required 
-                placeholder="user@example.com"
-              />
-            </div>
-            <div class="form-group">
-              <label>Display Name *</label>
-              <input 
-                v-model="newUser.displayName" 
-                type="text" 
-                required 
-                placeholder="John Doe"
-              />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Password *</label>
-              <input 
-                v-model="newUser.password" 
-                type="password" 
-                required 
-                minlength="6"
-                placeholder="Minimum 6 characters"
-              />
-            </div>
-            <div class="form-group">
-              <label>Role *</label>
-              <select v-model="newUser.role" required>
-                <option value="attendant">Attendant</option>
-                <option value="company">Company</option>
-                <option value="company-manager">Company Manager</option>
-                <option value="driver">Driver</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-          </div>
-          <!-- Company Selection (for company-manager and driver roles) -->
-          <div v-if="newUser.role === 'company-manager' || newUser.role === 'driver'" class="form-row">
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label>Company *</label>
-              <select v-model="newUser.companyId" required>
-                <option value="">Select a company</option>
-                <option v-for="company in companies" :key="company.id" :value="company.id">
-                  {{ company.name }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="btn-primary" :disabled="loading">
-            <span v-if="loading" class="spinner"></span>
-            {{ loading ? 'Adding User...' : 'Add User' }}
-          </button>
-        </form>
-      </section>
-      <section v-else class="card card-restricted">
-        <h2>Add New User</h2>
-        <p class="restricted-message">Only admins can add new users</p>
-      </section>
+      <!-- Add New User Form -->
+      <CreateAccount 
+        title="Add New User" 
+        @account-created="handleAccountCreated"
+      />
 
       <!-- Users List -->
       <section class="card">
@@ -123,34 +59,25 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuth } from '~/composables/useAuth';
-import { useCompanies } from '~/composables/useCompanies';
 import { useNotification } from '~/composables/useNotification';
+import { useAuditLog } from '~/composables/useAuditLog';
 import CompactTable from '~/components/CompactTable.vue';
+import CreateAccount from '~/components/CreateAccount.vue';
 
 // definePageMeta({
 //   layout: 'admin',
 //   middleware: ['auth', 'admin']
 // });
 
-const { $db, $auth } = useNuxtApp();
-const { registerUser, user: currentUser, initAuth } = useAuth();
-const { getCompanies } = useCompanies();
+const { $db } = useNuxtApp();
+const { user: currentUser } = useAuth();
 const { success, error: showError } = useNotification();
+const { logAction } = useAuditLog();
 const { collection, getDocs, doc, deleteDoc } = await import('firebase/firestore');
 
-const loading = ref(false);
 const loadingUsers = ref(false);
 const users = ref([]);
-const companies = ref([]);
 const searchQuery = ref('');
-
-const newUser = ref({
-  email: '',
-  displayName: '',
-  password: '',
-  role: 'attendant',
-  companyId: ''
-});
 
 const currentUserId = computed(() => currentUser.value?.uid);
 const currentUserRole = computed(() => currentUser.value?.role);
@@ -189,47 +116,9 @@ async function fetchUsers() {
   }
 }
 
-async function fetchCompanies() {
-  try {
-    companies.value = await getCompanies();
-  } catch (err) {
-    console.error('Error fetching companies:', err);
-    showError('Failed to load companies');
-  }
-}
-
-async function handleAddUser() {
-  loading.value = true;
-  try {
-    const result = await registerUser(
-      newUser.value.email,
-      newUser.value.password,
-      newUser.value.displayName,
-      newUser.value.role,
-      newUser.value.companyId
-    );
-    
-    if (result.success) {
-      success('User added successfully');
-      // Reset form
-      newUser.value = {
-        email: '',
-        displayName: '',
-        password: '',
-        role: 'attendant',
-        companyId: ''
-      };
-      // Refresh users list
-      await fetchUsers();
-    } else {
-      showError(result.message || 'Failed to add user');
-    }
-  } catch (err) {
-    console.error('Error adding user:', err);
-    showError('An error occurred while adding the user');
-  } finally {
-    loading.value = false;
-  }
+async function handleAccountCreated() {
+  // Refresh users list when new account is created
+  await fetchUsers();
 }
 
 async function handleDeleteUser(user) {
@@ -255,6 +144,14 @@ async function handleDeleteUser(user) {
   try {
     const userDoc = doc($db, 'users', user.id);
     await deleteDoc(userDoc);
+    
+    // Log the deletion
+    await logAction('user_deleted', {
+      targetUserId: user.id,
+      targetUserEmail: user.email,
+      targetUserRole: user.role
+    });
+    
     success('User deleted successfully');
     await fetchUsers();
   } catch (err) {
@@ -275,7 +172,6 @@ function formatDate(timestamp) {
 
 onMounted(() => {
   fetchUsers();
-  fetchCompanies();
 });
 </script>
 

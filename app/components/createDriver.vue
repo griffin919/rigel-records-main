@@ -4,57 +4,11 @@
       <h1>User Management</h1>
       <p class="subtitle">Manage existing drivers and add new drivers</p>
 
-      <!-- Add New User Form (Admin Only) -->
-      <section class="card">
-        <h2>Add New Driver</h2>
-        <form @submit.prevent="handleAddUser" class="user-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Email *</label>
-              <input
-                v-model="newUser.email"
-                type="email"
-                required
-                placeholder="user@example.com"
-              />
-            </div>
-            <div class="form-group">
-              <label>Display Name *</label>
-              <input
-                v-model="newUser.displayName"
-                type="text"
-                required
-                placeholder="John Doe"
-              />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Password *</label>
-              <input
-                v-model="newUser.password"
-                type="password"
-                required
-                minlength="6"
-                placeholder="Minimum 6 characters"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Role *</label>
-            <select v-model="newUser.role" required>
-              <option value="company-manager">Company Manager</option>
-              <option value="driver">Driver</option>
-            </select>
-          </div>
-
-          <button type="submit" class="btn-primary" :disabled="loading">
-            <span v-if="loading" class="spinner"></span>
-            {{ loading ? "Adding User..." : "Add User" }}
-          </button>
-        </form>
-      </section>
+      <!-- Add New User Form -->
+      <CreateAccount 
+        title="Add New Driver" 
+        @account-created="handleAccountCreated"
+      />
 
       <!-- Users List -->
       <section class="card">
@@ -106,9 +60,10 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useAuth } from "~/composables/useAuth";
-import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
+import { useAuditLog } from "~/composables/useAuditLog";
 import CompactTable from "~/components/CompactTable.vue";
+import CreateAccount from "~/components/CreateAccount.vue";
 import { doc, updateDoc } from "firebase/firestore";
 
 definePageMeta({
@@ -116,34 +71,15 @@ definePageMeta({
   middleware: ["auth", "company"],
 });
 
-const { $db, $auth } = useNuxtApp();
-const { registerUser, user: currentUser, initAuth } = useAuth();
-const { getCompanies } = useCompanies();
-const { getCompanyDrivers } = useDrivers();
+const { $db } = useNuxtApp();
 const { success, error: showError } = useNotification();
-// const { collection, getDocs, doc, deleteDoc } = await import(
-//   "firebase/firestore"
-// );
+const { getCompanyDrivers } = useDrivers();
 const { user } = useAuth();
+const { logAction } = useAuditLog();
 
-const loading = ref(false);
 const loadingUsers = ref(false);
 const users = ref([]);
-const companies = ref([]);
 const searchQuery = ref("");
-
-const newUser = ref({
-  email: "",
-  displayName: "",
-  password: "",
-  role: "driver",
-  companyId: "",
-  active: false,
-});
-
-const currentUserId = computed(() => currentUser.value?.uid);
-const currentUserRole = computed(() => currentUser.value?.role);
-const isAdmin = computed(() => currentUserRole.value === "admin");
 
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value;
@@ -159,8 +95,7 @@ const handleStatus = async (item) => {
   let isActive = item.active;
 
   if (isActive) {
-
-     if (user.uid === item.id) {
+    if (user.uid === item.id) {
       showError("You cannot delete your own account");
       return;
     }
@@ -170,22 +105,24 @@ const handleStatus = async (item) => {
       return;
     }
 
-   
     try {
-      const userDoc = doc($db, "users", user.id);
-
-      // Get a reference to the document
-
-      // Update the specific fields
+      const userDoc = doc($db, "users", item.id);
       await updateDoc(userDoc, {
-        active: true,
+        active: false,
       });
-      success("Status successfully");
-
+      
+      // Log the action
+      await logAction('user_deactivated', {
+        targetUserId: item.id,
+        targetUserEmail: item.email,
+        targetUserRole: item.role
+      });
+      
+      success("User deactivated successfully");
       await fetchUsers();
     } catch (err) {
-      console.error("Error deleting user:", err);
-      showError("Failed to delete user");
+      console.error("Error updating user:", err);
+      showError("Failed to update user status");
     }
   }
 };
@@ -246,84 +183,9 @@ async function fetchUsers() {
   }
 }
 
-async function fetchCompanies() {
-  try {
-    companies.value = await getCompanies();
-  } catch (err) {
-    console.error("Error fetching companies:", err);
-    showError("Failed to load companies");
-  }
-}
-
-async function handleAddUser() {
-  loading.value = true;
-  try {
-    // Make sure the newUser has the current company's ID and role driver
-    newUser.value.companyId = currentUser.value.companyId;
-    // newUser.value.role = 'driver';   // Cause of all the registered company managers still appearing as driver role
-
-    const result = await registerUser(
-      newUser.value.email,
-      newUser.value.password,
-      newUser.value.displayName,
-      newUser.value.role,
-      newUser.value.companyId
-    );
-
-    if (result.success) {
-      success("Driver added successfully");
-
-      // Reset form for next entry
-      newUser.value = {
-        email: "",
-        displayName: "",
-        password: "",
-        role: "driver", // keep default role as driver
-        companyId: currentUser.value.companyId, // reset to current company
-      };
-
-      // Refresh drivers list
-      await fetchUsers();
-    } else {
-      showError(result.message || "Failed to add driver");
-    }
-  } catch (err) {
-    console.error("Error adding driver:", err);
-    showError("An error occurred while adding the driver");
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleAddStatus(user) {
-  if (!isAdmin.value) {
-    showError("Only admins can delete users");
-    return;
-  }
-
-  if (user.role === "admin") {
-    showError("Admin accounts cannot be deleted");
-    return;
-  }
-
-  if (user.id === currentUserId.value) {
-    showError("You cannot delete your own account");
-    return;
-  }
-
-  if (!confirm(`Are you sure you want to delete ${user.email}?`)) {
-    return;
-  }
-
-  try {
-    const userDoc = doc($db, "users", user.id);
-    await deleteDoc(userDoc);
-    success("User deleted successfully");
-    await fetchUsers();
-  } catch (err) {
-    console.error("Error deleting user:", err);
-    showError("Failed to delete user");
-  }
+async function handleAccountCreated() {
+  // Refresh users list when new account is created
+  await fetchUsers();
 }
 
 function formatDate(timestamp) {
@@ -338,7 +200,6 @@ function formatDate(timestamp) {
 
 onMounted(() => {
   fetchUsers();
-  fetchCompanies();
 });
 </script>
 
