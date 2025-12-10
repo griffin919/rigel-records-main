@@ -118,6 +118,10 @@
         <div v-if="activeTab === 'drivers'" class="tab-panel">
           <section class="card">
             <h2 class="section-title">Add New Driver</h2>
+            <p style="font-size: 0.875rem; color: #f59e0b; margin-bottom: 1rem;">
+              ⚠️ Note: This adds drivers to the company record only. For full driver accounts with login access, 
+              use the <strong>Create Account</strong> feature in Settings with role "Driver".
+            </p>
             <form @submit.prevent="handleAddDriver" class="driver-form">
               <div class="form-row">
                 <div class="field">

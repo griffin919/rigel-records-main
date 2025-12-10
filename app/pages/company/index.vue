@@ -309,12 +309,19 @@ function formatDate(dt) {
 }
 
 async function markAsPaid(transactionId) {
-  // This would typically call an API to update the transaction
   isProcessing.value = true
   try {
-    // TODO: Implement API call to update transaction status
+    await updateTransaction(transactionId, { paid: true })
+    
+    // Update local state
+    const index = companyTransactions.value.findIndex(t => t.id === transactionId)
+    if (index > -1) {
+      companyTransactions.value[index].paid = true
+    }
+    
     success('Transaction marked as paid')
   } catch (err) {
+    console.error(err)
     error('Failed to update transaction')
   } finally {
     isProcessing.value = false

@@ -302,6 +302,7 @@ onMounted(async () => {
 
 const form = reactive({
   company: '',
+  driverId: '',
   driverName: '',
   phone: '',
   carNumber: '',
@@ -315,10 +316,12 @@ const form = reactive({
 // Watch for driver selection changes
 watch(selectedDriver, (driver) => {
   if (driver) {
+    form.driverId = driver.uid || driver.id || '';
     form.driverName = driver.name;
     form.phone = driver.phone;
     form.carNumber = driver.carNumber || '';
   } else {
+    form.driverId = '';
     form.driverName = '';
     form.phone = '';
     form.carNumber = '';
@@ -328,6 +331,7 @@ watch(selectedDriver, (driver) => {
 function onCompanyChange() {
   // Reset driver selection when company changes
   selectedDriver.value = '';
+  form.driverId = '';
   form.driverName = '';
   form.phone = '';
   form.carNumber = '';
@@ -428,6 +432,7 @@ async function submitEntry() {
     await addTransaction({
       companyId: form.company.id,
       company: form.company.name,
+      driverId: form.driverId || '',
       driverName: form.driverName,
       phone: form.phone,
       carNumber: form.carNumber,
@@ -460,6 +465,7 @@ async function submitEntry() {
 
 function clearForm() {
   form.company = ''
+  form.driverId = ''
   form.driverName = ''
   form.phone = ''
   form.carNumber = ''

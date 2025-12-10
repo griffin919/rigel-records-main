@@ -17,6 +17,55 @@ const app = getApps().length
 
 const db = getFirestore(app)
 
+// Nalo Solutions Configuration
+const NALO_USERNAME = process.env.NALO_USERNAME || 'Rigelis'
+const NALO_PASSWORD = process.env.NALO_PASSWORD || 'Maestro1985@'
+const NALO_SOURCE = process.env.NALO_SOURCE || 'RigelOS'
+
+/**
+ * Format phone number to international format
+ */
+function formatPhoneNumber(phone) {
+  if (!phone) return null
+  let cleaned = phone.replace(/\D/g, '')
+  if (cleaned.startsWith('0')) {
+    cleaned = '233' + cleaned.substring(1)
+  }
+  if (!cleaned.startsWith('233')) {
+    cleaned = '233' + cleaned
+  }
+  if (cleaned.length !== 12) {
+    return null
+  }
+  return cleaned
+}
+
+/**
+ * Send SMS via Nalo Solutions API
+ */
+async function sendViaNalo(phoneNumber, message) {
+  try {
+    const formattedPhone = formatPhoneNumber(phoneNumber)
+    if (!formattedPhone) return null
+
+    const url = `https://sms.nalosolutions.com/smsbackend/clientapi/Resl_Nalo/send-message/?username=${encodeURIComponent(NALO_USERNAME)}&password=${encodeURIComponent(NALO_PASSWORD)}&type=0&destination=${encodeURIComponent(formattedPhone)}&dlr=1&source=${encodeURIComponent(NALO_SOURCE)}&message=${encodeURIComponent(message)}`
+
+    const response = await fetch(url, { method: 'GET' })
+    if (!response.ok) return null
+    
+    const responseData = await response.text()
+    if (responseData.includes(':')) {
+      const [code] = responseData.split(':')
+      if (parseInt(code) !== 1000 && parseInt(code) >= 1001) return null
+    }
+    
+    return true
+  } catch (error) {
+    console.error('SMS send error:', error)
+    return null
+  }
+}
+
 export default defineEventHandler(async (event) => {
   const id = event.context.params.id
   const body = await readBody(event)
@@ -46,6 +95,16 @@ export default defineEventHandler(async (event) => {
     if (body.cost !== undefined) updates.cost = body.cost
 
     await updateDoc(docRef, updates)
+
+    // If transaction was marked as paid, send payment confirmation SMS
+    if (body.paid === true && docSnap.data().phone) {
+      const transaction = { id, ...docSnap.data(), ...updates }
+      const paymentMessage = `Payment Confirmed!\nDriver: ${transaction.driverName}\nAmount: GHS ${parseFloat(transaction.cost).toFixed(2)}\nItem: ${transaction.itemName}\nQty: ${transaction.quantity || transaction.fuelQuantity}\nStatus: PAID\nThank you!`
+      
+      sendViaNalo(transaction.phone, paymentMessage).catch(err =>
+        console.error('Failed to send payment confirmation SMS:', err)
+      )
+    }
 
     return { success: true, id, updates }
   } catch (error) {

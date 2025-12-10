@@ -114,6 +114,7 @@ export default defineEventHandler(async (event) => {
       displayName,
       role,
       active,
+      phone: '',
       createdAt: new Date().toISOString(),
       createdBy: requestingUserId
     }

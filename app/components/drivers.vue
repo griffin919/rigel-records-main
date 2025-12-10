@@ -338,9 +338,15 @@ async function submitForm() {
         email: form.value.email,
         displayName: form.value.name,
         role: 'driver',
+        active: true,
+        phone: form.value.phone,
         companyId: user.value.uid,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        createdBy: user.value.uid
       })
+
+      // Sign out the newly created user (security best practice)
+      await signOut($auth)
 
       success('Driver created successfully')
     }
