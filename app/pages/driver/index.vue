@@ -60,7 +60,7 @@
       <!-- Recent Transactions -->
       <div class="transactions-section">
         <h3>Your Recent Transactions</h3>
-        <ResponsiveTable :columns="transactionColumns" :items="driverTransactions" empty-message="No transactions yet">
+        <CompactTable :columns="transactionColumns" :items="driverTransactions" empty-message="No transactions yet">
           <template #cell-amount="{ item }">
             <span class="amount-badge">GHS {{ item.cost }}</span>
           </template>
@@ -74,7 +74,7 @@
           <template #cell-date="{ item }">
             <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
           </template>
-        </ResponsiveTable>
+        </CompactTable>
       </div>
     </div>
   </div>
@@ -86,7 +86,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useTransactions } from '~/composables/useTransactions'
 import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
-import ResponsiveTable from '~/components/ResponsiveTable.vue'
+import CompactTable from '~/components/CompactTable.vue'
 import {
   TruckIcon,
   CurrencyDollarIcon,
@@ -120,7 +120,6 @@ const greetingMessage = computed(() => {
 
 const driverStats = computed(() => {
   const today = new Date().toDateString()
-  console.log("driverTransactions.value", driverTransactions.value)
   const todayTransactions = driverTransactions.value.filter(t => {
     const transactionDate = new Date(t.createdAt).toDateString()
     return transactionDate === today
@@ -149,13 +148,10 @@ onMounted(async () => {
   try {
     if (user.value) {
       driverName.value = user.value.displayName || user.value.email || 'Driver'
-      console.log('Driver UID:', user.value.uid)
-      console.log('Driver role:', user.value.role)
 
       // Fetch company name if companyId exists
       if (user.value.companyId) {
         const companies = await getCompanies()
-        console.log("companies", companies)
         const company = companies.find(c => c.id === user.value.companyId)
         if (company) {
           companyName.value = company.name
@@ -163,12 +159,8 @@ onMounted(async () => {
       }
     }
     driverTransactions.value = await getTransactions()
-    console.log('Driver transactions loaded:', driverTransactions.value.length)
-    if (driverTransactions.value.length > 0) {
-      console.log('Sample transaction driverId:', driverTransactions.value[0].driverId)
-    }
   } catch (err) {
-    console.error('Error loading driver transactions:', err)
+    console.error(err)
     error('Failed to load transactions')
   } finally {
     isLoading.value = false
