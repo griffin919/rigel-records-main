@@ -10,12 +10,27 @@
             <p class="sub-greeting">{{ greetingMessage }}</p>
           </span>
           <div class="sidebar-footer">
-          <div class="avatar" @click="handleLogout">
-
-           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M5 3h6a3 3 0 0 1 3 3v4h-1V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-4h1v4a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3m3 9h11.25L16 8.75l.66-.75l4.5 4.5l-4.5 4.5l-.66-.75L19.25 13H8z" stroke-width="0.5" stroke="#fff"/></svg>
+          <div class="avatar" @click="toggleDropdown">
+            <span>{{ userInitial }}</span>
           </div>
 
-       
+          <!-- Dropdown Menu -->
+          <div v-if="showDropdown" class="dropdown-menu">
+            <button v-if="userRole === 'admin'" class="dropdown-item admin-item" @click="navigateToAdmin">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="dropdown-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Admin Settings
+            </button>
+            <button class="dropdown-item logout-item" @click="handleLogout">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" class="dropdown-icon">
+                <path fill="currentColor" d="M5 3h6a3 3 0 0 1 3 3v4h-1V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-4h1v4a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3m3 9h11.25L16 8.75l.66-.75l4.5 4.5l-4.5 4.5l-.66-.75L19.25 13H8z"/>
+              </svg>
+              Logout
+            </button>
+          </div>
       </div>
         </div>
       </div>
@@ -24,9 +39,16 @@
 
 
 <script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import { useNotification } from '~/composables/useNotification'
+import { useRouter } from 'vue-router'
 
-const { user } = useAuth()
+const { user, userRole, logout } = useAuth()
+const { success } = useNotification()
+const router = useRouter()
+
+const showDropdown = ref(false)
 
 // User info
 const userName = computed(() => {
@@ -39,32 +61,48 @@ const userName = computed(() => {
   return 'Attendant'
 })
 
-// Logout
- const { isAdmin, logout } = useAuth();
-const { success } = useNotification();
-const router = useRouter();
-const route = useRoute();
+const userInitial = computed(() => userName.value.charAt(0).toUpperCase())
 
-function isActive(path) {
-  return route.path === path;
+const greetingMessage = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good Morning"
+  if (hour < 18) return "Good Afternoon"
+  return "Good Evening"
+})
+
+function toggleDropdown() {
+  showDropdown.value = !showDropdown.value
+}
+
+function navigateToAdmin() {
+  showDropdown.value = false
+  router.push('/admin/settings')
 }
 
 async function handleLogout() {
-  const result = await logout();
+  showDropdown.value = false
+  const result = await logout()
   if (result.success) {
-    success('Logged out successfully');
-    router.push('/login');
+    success('Logged out successfully')
+    router.push('/login')
   }
 }
 
-const userInitial = computed(() => userName.value.charAt(0).toUpperCase());
+// Close dropdown when clicking outside
+function handleClickOutside(event) {
+  const dropdown = event.target.closest('.sidebar-footer')
+  if (!dropdown) {
+    showDropdown.value = false
+  }
+}
 
-const greetingMessage = computed(() => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 18) return "Good Afternoon";
-  return "Good Evening";
-});
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
@@ -85,6 +123,10 @@ const greetingMessage = computed(() => {
 }
 
 
+.sidebar-footer {
+  position: relative;
+}
+
 .avatar {
   width: 2.5rem;
   height: 2.5rem;
@@ -97,6 +139,67 @@ const greetingMessage = computed(() => {
   font-weight: bold;
   font-size: 1.125rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  min-width: 12rem;
+  overflow: hidden;
+  z-index: 1000;
+  border: 1px solid #e5e7eb;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.9375rem;
+  text-align: left;
+  color: #374151;
+}
+
+.dropdown-item:hover {
+  background: #f9fafb;
+}
+
+.dropdown-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.admin-item {
+  color: #3b82f6;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.admin-item:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.logout-item {
+  color: #dc2626;
+}
+
+.logout-item:hover {
+  background: rgba(220, 38, 38, 0.05);
 }
 
 
