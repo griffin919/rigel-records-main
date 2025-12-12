@@ -46,10 +46,10 @@ export default defineEventHandler(async (event) => {
       if (!userId) {
         return []
       }
+      // Temporarily remove orderBy to avoid index requirement
       q = query(
         collection(db, 'transactions'), 
-        where('driverId', '==', userId),
-        orderBy('createdAt', 'desc')
+        where('driverId', '==', userId)
       )
     } else if (userRole === 'attendant') {
       // Attendants see transactions they served

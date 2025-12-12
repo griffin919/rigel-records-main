@@ -201,7 +201,7 @@
                     </td>
                     <td>
                       <span :class="['role-badge', driver.role]">
-                        {{ driver.role === 'driver' ? 'Driver' : 'Company Manager' }}
+                        {{ driver.role === 'driver' ? 'Driver' : 'Manager' }}
                       </span>
                     </td>
                     <td>

@@ -456,15 +456,15 @@ function exportCSV(rows, filename) {
 /* Filter Actions */
 .filters-actions {
   display: flex;
-  gap: 25px;
-  margin: 20px;
+  gap: 5px;
+  margin: 0px;
 }
 
 .filter-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.3rem;
   border-radius: 0.625rem;
   font-size: 0.9375rem;
   font-weight: 500;

@@ -168,7 +168,7 @@ onMounted(async () => {
       console.log('Sample transaction driverId:', driverTransactions.value[0].driverId)
     }
   } catch (err) {
-    console.error(err)
+    console.error('Error loading driver transactions:', err)
     error('Failed to load transactions')
   } finally {
     isLoading.value = false
