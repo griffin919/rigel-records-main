@@ -201,7 +201,7 @@
                     </td>
                     <td>
                       <span :class="['role-badge', driver.role]">
-                        {{ driver.role === 'driver' ? 'Driver' : 'Manager' }}
+                        {{ driver.role === 'driver' ? 'Driver' : 'Company Manager' }}
                       </span>
                     </td>
                     <td>
@@ -657,7 +657,7 @@ function navigateToDrivers() {
 .overview-card {
   background: white;
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1.0rem;
   display: flex;
   gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -703,7 +703,7 @@ function navigateToDrivers() {
 .card-content {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.1rem;
   flex: 1;
 }
 
@@ -718,7 +718,7 @@ function navigateToDrivers() {
 
 .card-value {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #111827;
 }
@@ -1151,7 +1151,7 @@ function navigateToDrivers() {
   }
 }
 
-@media (max-width: 480px) {
+/* @media (max-width: 480px) {
   .overview-grid {
     grid-template-columns: 1fr;
   }
@@ -1159,5 +1159,5 @@ function navigateToDrivers() {
   .card-value {
     font-size: 1.25rem;
   }
-}
+} */
 </style>
