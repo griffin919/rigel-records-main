@@ -120,6 +120,7 @@ const greetingMessage = computed(() => {
 
 const driverStats = computed(() => {
   const today = new Date().toDateString()
+  console.log("driverTransactions.value", driverTransactions.value)
   const todayTransactions = driverTransactions.value.filter(t => {
     const transactionDate = new Date(t.createdAt).toDateString()
     return transactionDate === today
@@ -148,10 +149,13 @@ onMounted(async () => {
   try {
     if (user.value) {
       driverName.value = user.value.displayName || user.value.email || 'Driver'
+      console.log('Driver UID:', user.value.uid)
+      console.log('Driver role:', user.value.role)
 
       // Fetch company name if companyId exists
       if (user.value.companyId) {
         const companies = await getCompanies()
+        console.log("companies", companies)
         const company = companies.find(c => c.id === user.value.companyId)
         if (company) {
           companyName.value = company.name
@@ -159,6 +163,10 @@ onMounted(async () => {
       }
     }
     driverTransactions.value = await getTransactions()
+    console.log('Driver transactions loaded:', driverTransactions.value.length)
+    if (driverTransactions.value.length > 0) {
+      console.log('Sample transaction driverId:', driverTransactions.value[0].driverId)
+    }
   } catch (err) {
     console.error(err)
     error('Failed to load transactions')

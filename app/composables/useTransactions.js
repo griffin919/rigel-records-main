@@ -11,8 +11,10 @@ export const useTransactions = () => {
         params.userRole = userRole.value || 'attendant'
         
         // Include companyId for company and company-manager roles
-        if (user.value.companyId && (userRole.value === 'company' || userRole.value === 'company-manager')) {
-          params.companyId = user.value.companyId
+        if (userRole.value === 'company' || userRole.value === 'company-manager') {
+          // For company role, use their own UID as companyId
+          // For company-manager role, use the companyId from their profile
+          params.companyId = userRole.value === 'company' ? user.value.uid : user.value.companyId
         }
       }
       

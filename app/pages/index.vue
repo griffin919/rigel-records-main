@@ -448,8 +448,7 @@ async function submitEntry() {
     // Calculate points earned: item points × quantity
     const pointsEarned = (form.selectedItem.points || 0) * form.quantity
 
-    // Submit transaction
-    await addTransaction({
+    const transactionData = {
       companyId: form.company.id,
       company: form.company.name,
       driverId: form.driverId || '',
@@ -467,7 +466,12 @@ async function submitEntry() {
       paid: false,
       servedBy: user.value?.displayName || user.value?.email || 'Attendant',
       servedById: user.value?.uid || ''
-    })
+    }
+    
+    console.log('Creating transaction with driverId:', transactionData.driverId)
+
+    // Submit transaction
+    await addTransaction(transactionData)
 
     // Refresh transactions immediately
     transactions.value = await getTransactions()

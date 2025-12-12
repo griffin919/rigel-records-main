@@ -258,7 +258,7 @@ definePageMeta({
 })
 
 const { user, logout } = useAuth()
-const { getTransactions } = useTransactions()
+const { getTransactions, updateTransaction } = useTransactions()
 const { getCompanies } = useCompanies()
 const { success, error } = useNotification()
 const { $db } = useNuxtApp()
@@ -303,6 +303,7 @@ onMounted(async () => {
       }
     }
     transactions.value = await getTransactions()
+    console.log("  transactions.value",   transactions.value)
     await loadDrivers()
   } catch (err) {
     console.error(err)
@@ -316,12 +317,16 @@ async function loadDrivers() {
     return
   }
   
-  console.log('Loading drivers for company:', user.value.uid)
+  // For company role, use their own UID as companyId
+  // For company-manager role, use the companyId from their profile
+  const companyId = user.value.role === 'company' ? user.value.uid : user.value.companyId
+  
+  console.log('Loading drivers for company:', companyId)
   
   try {
     const usersQuery = query(
       collection($db, 'users'),
-      where('companyId', '==', user.value.companyId),
+      where('companyId', '==', companyId),
       where('role', 'in', ['driver', 'company-manager'])
     )
     const snapshot = await getDocs(usersQuery)
@@ -329,7 +334,7 @@ async function loadDrivers() {
       id: doc.id,
       ...doc.data()
     }))
-    console.log('Loaded', companyDrivers.value, 'drivers/managers')
+    console.log('Loaded', companyDrivers.value.length, 'drivers/managers')
   } catch (err) {
     console.error('Error loading drivers:', err)
     error('Failed to load drivers and managers')
@@ -425,9 +430,9 @@ async function markAsPaid(transactionId) {
     await updateTransaction(transactionId, { paid: true })
     
     // Update local state
-    const index = companyTransactions.value.findIndex(t => t.id === transactionId)
+    const index = transactions.value.findIndex(t => t.id === transactionId)
     if (index > -1) {
-      companyTransactions.value[index].paid = true
+      transactions.value[index].paid = true
     }
     
     success('Transaction marked as paid')
