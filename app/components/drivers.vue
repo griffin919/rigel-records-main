@@ -225,30 +225,17 @@ async function loadDrivers() {
     const usersSnapshot = await getDocs(usersQuery)
     console.log('Found driver users:', usersSnapshot.docs.length)
     
-    if (usersSnapshot.docs.length > 0) {
-      // Load from users collection
-      drivers.value = usersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        name: doc.data().displayName || doc.data().email,
-        email: doc.data().email,
-        phone: doc.data().phone || '',
-        carNumber: doc.data().carNumber || '',
-        active: doc.data().active !== false,
-        createdAt: doc.data().createdAt,
-        ...doc.data()
-      }))
-    } else {
-      // Fallback to drivers collection
-      const q = query(
-        collection($db, 'drivers'),
-        where('companyId', '==', user.value.uid)
-      )
-      const snapshot = await getDocs(q)
-      drivers.value = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-    }
+    // Load from users collection
+    drivers.value = usersSnapshot.docs.map(doc => ({
+      id: doc.id,
+      name: doc.data().displayName || doc.data().email,
+      email: doc.data().email,
+      phone: doc.data().contact || doc.data().phone || '',
+      carNumber: doc.data().carNumber || '',
+      active: doc.data().active !== false,
+      createdAt: doc.data().createdAt,
+      ...doc.data()
+    }))
     
     console.log('Drivers loaded:', drivers.value)
   } catch (err) {
@@ -305,9 +292,10 @@ async function submitForm() {
   isSubmitting.value = true
   try {
     if (editingDriver.value) {
-      // Update existing driver
-      await updateDoc(doc($db, 'drivers', editingDriver.value.id), {
-        name: form.value.name,
+      // Update existing driver in users collection
+      await updateDoc(doc($db, 'users', editingDriver.value.id), {
+        displayName: form.value.name,
+        contact: form.value.phone,
         phone: form.value.phone,
         carNumber: form.value.carNumber,
         updatedAt: new Date().toISOString()
@@ -321,25 +309,15 @@ async function submitForm() {
         form.value.password
       )
 
-      // Create driver document
-      await setDoc(doc($db, 'drivers', authResult.user.uid), {
-        name: form.value.name,
-        email: form.value.email,
-        phone: form.value.phone,
-        carNumber: form.value.carNumber,
-        companyId: user.value.uid,
-        active: true,
-        createdAt: new Date().toISOString(),
-        createdBy: user.value.uid
-      })
-
-      // Also create a user record with driver role
+      // Create a user record with driver role
       await setDoc(doc($db, 'users', authResult.user.uid), {
         email: form.value.email,
         displayName: form.value.name,
         role: 'driver',
         active: true,
+        contact: form.value.phone,
         phone: form.value.phone,
+        carNumber: form.value.carNumber,
         companyId: user.value.uid,
         createdAt: new Date().toISOString(),
         createdBy: user.value.uid
@@ -367,7 +345,7 @@ async function submitForm() {
 
 async function toggleDriverStatus(driver) {
   try {
-    await updateDoc(doc($db, 'drivers', driver.id), {
+    await updateDoc(doc($db, 'users', driver.id), {
       active: !driver.active,
       updatedAt: new Date().toISOString()
     })
@@ -383,7 +361,7 @@ async function deleteDriver(driverId) {
   if (!confirm('Are you sure you want to delete this driver?')) return
 
   try {
-    await deleteDoc(doc($db, 'drivers', driverId))
+    await deleteDoc(doc($db, 'users', driverId))
     success('Driver deleted successfully')
     await loadDrivers()
   } catch (err) {

@@ -78,7 +78,7 @@
           <div class="text-sm text-muted-foreground">{{ items.length }} items</div>
         </div>
 
-        <CompactTable 
+        <ResponsiveTable 
           :columns="itemColumns" 
           :items="items"
           empty-message="No items yet. Click 'Add Item' to create your first item.">
@@ -118,7 +118,7 @@
               </button>
             </div>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
       </section>
     </template>
   </main>
@@ -128,7 +128,7 @@
 import { ref, reactive, onMounted, computed } from "vue";
 import { useItems } from "~/composables/useItems";
 import { useNotification } from "~/composables/useNotification";
-import CompactTable from "~/components/CompactTable.vue";
+import ResponsiveTable from "~/components/ResponsiveTable.vue";
 
 definePageMeta({
   layout: 'admin',

@@ -62,7 +62,7 @@
       <section>
         <h3 class="text-xl font-semibold mb-4">All Companies ({{ companies.length }})</h3>
 
-        <CompactTable
+        <ResponsiveTable
           :columns="companyColumns"
           :items="companies"
           empty-message="No companies found">
@@ -76,7 +76,7 @@
               View Details
             </button>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
       </section>
 
     </template>
@@ -89,7 +89,7 @@ import { useRouter } from "vue-router";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
-import CompactTable from "~/components/CompactTable.vue";
+import ResponsiveTable from "~/components/ResponsiveTable.vue";
 import { PlusIcon, EyeIcon } from '@heroicons/vue/24/outline';
 
 definePageMeta({

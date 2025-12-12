@@ -29,7 +29,7 @@
           <p>Loading users...</p>
         </div>
         
-        <CompactTable class="user-table"
+        <ResponsiveTable class="user-table"
           v-else
           :columns="userColumns"
           :items="filteredUsers"
@@ -51,7 +51,7 @@
               Delete
             </button>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
       </section>
     </div>
   </div>
@@ -62,7 +62,7 @@ import { ref, computed, onMounted } from "vue";
 import { useAuth } from "~/composables/useAuth";
 import { useNotification } from "~/composables/useNotification";
 import { useAuditLog } from "~/composables/useAuditLog";
-import CompactTable from "~/components/CompactTable.vue";
+import ResponsiveTable from "~/components/ResponsiveTable.vue";
 import CreateAccount from "~/components/CreateAccount.vue";
 import { doc, updateDoc } from "firebase/firestore";
 

@@ -42,7 +42,7 @@
         </div>
 
         <!-- Transactions Table -->
-        <CompactTable :columns="tableColumns" :items="filteredTransactions"
+        <ResponsiveTable :columns="tableColumns" :items="filteredTransactions"
           empty-message="No transactions yet. Tap the + button to add one.">
           <template #cell-company="{ item }">
             <div class="company-cell">
@@ -81,7 +81,7 @@
           <template #cell-date="{ item }">
             <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
       </div>
 
       <!-- Floating Add Button -->
@@ -235,6 +235,8 @@ import { useTransactions } from '~/composables/useTransactions'
 import { useNotification } from '~/composables/useNotification'
 import { useItems } from '~/composables/useItems'
 import { useAuth } from '~/composables/useAuth'
+import { useDrivers } from '~/composables/useDrivers'
+import ResponsiveTable from '~/components/ResponsiveTable.vue'
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { getStorage } from 'firebase/storage'
 // Heroicons
@@ -255,6 +257,7 @@ definePageMeta({
 const { getTransactions, addTransaction } = useTransactions()
 const { success, error } = useNotification()
 const { user, userRole } = useAuth()
+const { getCompanyDrivers } = useDrivers()
 
 /* shared state */
 const companies = ref([])
@@ -270,10 +273,15 @@ const searchQuery = ref('')
 const selectedDriver = ref('')
 const photoInput = ref(null)
 const showForm = ref(false)
+const companyDrivers = ref([])
 
 const availableDrivers = computed(() => {
-  if (!form.company || !form.company.drivers) return [];
-  return form.company.drivers || [];
+  return companyDrivers.value.map(driver => ({
+    uid: driver.id,
+    name: driver.displayName || driver.email,
+    phone: driver.contact || driver.phone || '',
+    carNumber: driver.carNumber || ''
+  }))
 })
 
 // User info
@@ -328,13 +336,25 @@ watch(selectedDriver, (driver) => {
   }
 })
 
-function onCompanyChange() {
+async function onCompanyChange() {
   // Reset driver selection when company changes
   selectedDriver.value = '';
   form.driverId = '';
   form.driverName = '';
   form.phone = '';
   form.carNumber = '';
+  
+  // Load drivers for the selected company
+  if (form.company && form.company.id) {
+    try {
+      companyDrivers.value = await getCompanyDrivers(form.company.id)
+    } catch (err) {
+      console.error('Failed to load drivers:', err)
+      companyDrivers.value = []
+    }
+  } else {
+    companyDrivers.value = []
+  }
 }
 
 // Photo upload handler

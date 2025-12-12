@@ -21,9 +21,6 @@
         
         <!-- Points Badge -->
         <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 border-2 border-yellow-400 rounded-lg">
-          <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
           <span class="text-lg font-bold text-yellow-600">{{ totalPoints.toFixed(0) }} Loyalty Points</span>
         </div>
       </div>
@@ -47,7 +44,7 @@
           >
             <TruckIcon class="tab-icon" />
             Manage Drivers
-            <span class="tab-badge">{{ (currentCompany.drivers || []).length }}</span>
+            <span class="tab-badge">{{ companyDrivers.length }}</span>
           </button>
         </div>
       </div>
@@ -65,7 +62,7 @@
             </div>
 
             <div v-if="companyTransactions.length" class="responsive-table-wrapper">
-              <CompactTable
+              <ResponsiveTable
                 :columns="transactionColumns"
                 :items="companyTransactions"
                 empty-message="No transactions yet for this company">
@@ -104,7 +101,7 @@
                     {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
                   </button>
                 </template>
-              </CompactTable>
+              </ResponsiveTable>
             </div>
 
             <div v-else class="empty-state">
@@ -117,59 +114,41 @@
         <!-- Drivers Tab -->
         <div v-if="activeTab === 'drivers'" class="tab-panel">
           <section class="card">
-            <h2 class="section-title">Add New Driver</h2>
-            <p style="font-size: 0.875rem; color: #f59e0b; margin-bottom: 1rem;">
-              ⚠️ Note: This adds drivers to the company record only. For full driver accounts with login access, 
-              use the <strong>Create Account</strong> feature in Settings with role "Driver".
-            </p>
-            <form @submit.prevent="handleAddDriver" class="driver-form">
-              <div class="form-row">
-                <div class="field">
-                  <label>Driver Name *</label>
-                  <input v-model="newDriverName" type="text" placeholder="Enter driver name" required />
-                </div>
-                <div class="field">
-                  <label>Phone Number *</label>
-                  <input v-model="newDriverPhone" type="tel" placeholder="0241234567" required />
-                </div>
-                <div class="field">
-                  <label>Car Number *</label>
-                  <input v-model="newDriverCar" type="text" placeholder="GW-1234-20" required />
-                </div>
-              </div>
-              <button class="btn" type="submit" :disabled="isSubmitting">
-                <PlusIcon class="btn-icon" />
-                {{ isSubmitting ? 'Adding...' : 'Add Driver' }}
-              </button>
-            </form>
+            <h2 class="section-title">Manage Drivers</h2>
+            <div style="padding: 1rem; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+              <p style="font-size: 0.875rem; color: #92400e; margin: 0;">
+                <strong>ℹ️ How to add drivers:</strong> Navigate to <strong>Settings → Create Account</strong> 
+                and create a new user account with the role "Driver" and assign them to this company.
+              </p>
+            </div>
           </section>
 
           <section class="card">
-            <h2 class="section-title">Current Drivers ({{ (currentCompany.drivers || []).length }})</h2>
+            <h2 class="section-title">Current Drivers ({{ companyDrivers.length }})</h2>
             
-            <div v-if="(currentCompany.drivers || []).length" class="drivers-list">
+            <div v-if="companyDrivers.length" class="drivers-list">
               <div 
-                v-for="(driver, index) in (currentCompany.drivers || [])" 
-                :key="index" 
+                v-for="driver in companyDrivers" 
+                :key="driver.id" 
                 class="driver-card"
               >
                 <div class="driver-avatar">
                   <UserIcon class="avatar-icon" />
                 </div>
                 <div class="driver-info">
-                  <div class="driver-name">{{ driver.name }}</div>
+                  <div class="driver-name">{{ driver.displayName || driver.email }}</div>
                   <div class="driver-details">
                     <PhoneIcon class="detail-icon" />
-                    {{ driver.phone }}
+                    {{ driver.contact || driver.phone || 'N/A' }}
                   </div>
-                  <div class="driver-details">
+                  <div class="driver-details" v-if="driver.carNumber">
                     <TruckIcon class="detail-icon" />
                     {{ driver.carNumber }}
                   </div>
                 </div>
                 <button 
                   class="btn-danger-small" 
-                  @click="removeDriver(index)"
+                  @click="removeDriver(driver.id)"
                   :disabled="isSubmitting"
                 >
                   <TrashIcon class="icon-sm" />
@@ -195,8 +174,9 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
+import { useDrivers } from "~/composables/useDrivers";
 import { useNotification } from "~/composables/useNotification";
-import CompactTable from "~/components/CompactTable.vue";
+import ResponsiveTable from "~/components/ResponsiveTable.vue";
 import { 
   ArrowLeftIcon,
   DocumentTextIcon,
@@ -204,7 +184,8 @@ import {
   PlusIcon,
   UserIcon,
   PhoneIcon,
-  TrashIcon
+  TrashIcon,
+  StarIcon
 } from '@heroicons/vue/24/outline';
 
 definePageMeta({
@@ -216,19 +197,17 @@ const route = useRoute();
 const router = useRouter();
 const { getTransactions, updateTransaction } = useTransactions();
 const { getCompanies, updateCompany } = useCompanies();
+const { getCompanyDrivers, updateDriver, deleteDriver } = useDrivers();
 const { success, error } = useNotification();
 
 const transactions = ref([]);
 const companies = ref([]);
 const currentCompany = ref(null);
+const companyDrivers = ref([]);
 const isLoading = ref(false);
 const isSubmitting = ref(false);
 const loadError = ref('');
 const activeTab = ref('transactions');
-
-const newDriverName = ref('');
-const newDriverPhone = ref('');
-const newDriverCar = ref('');
 
 const companyTransactions = computed(() => {
   if (!currentCompany.value) return [];
@@ -272,7 +251,11 @@ onMounted(async () => {
       loadError.value = 'Company not found';
       error('Company not found');
       router.push('/admin/companies');
+      return;
     }
+    
+    // Fetch drivers for this company from users collection
+    companyDrivers.value = (await getCompanyDrivers(companyId)) || [];
   } catch (err) {
     console.error('Load error:', err);
     loadError.value = err?.message || 'Failed to load data';
@@ -303,49 +286,20 @@ function formatDate(dt) {
 }
 
 async function handleAddDriver() {
-  if (!newDriverName.value.trim() || !newDriverPhone.value.trim() || !newDriverCar.value.trim()) {
-    error('Please enter driver name, phone number, and car number');
-    return;
-  }
-
-  isSubmitting.value = true;
-  try {
-    const updatedDrivers = [
-      ...(currentCompany.value.drivers || []),
-      { 
-        name: newDriverName.value.trim(), 
-        phone: newDriverPhone.value.trim(),
-        carNumber: newDriverCar.value.trim()
-      }
-    ];
-
-    await updateCompany(currentCompany.value.id, { drivers: updatedDrivers });
-    currentCompany.value.drivers = updatedDrivers;
-
-    newDriverName.value = '';
-    newDriverPhone.value = '';
-    newDriverCar.value = '';
-    success('Driver added successfully!');
-  } catch (err) {
-    console.error(err);
-    error('Failed to add driver');
-  } finally {
-    isSubmitting.value = false;
-  }
+  error('Please use the Create Account component to add drivers. Navigate to the company page or use the admin settings.');
 }
 
-async function removeDriver(index) {
-  if (!confirm('Are you sure you want to remove this driver?')) {
+async function removeDriver(driverId) {
+  if (!confirm('Are you sure you want to remove this driver? This will delete their account.')) {
     return;
   }
 
   isSubmitting.value = true;
   try {
-    const updatedDrivers = [...currentCompany.value.drivers];
-    updatedDrivers.splice(index, 1);
-
-    await updateCompany(currentCompany.value.id, { drivers: updatedDrivers });
-    currentCompany.value.drivers = updatedDrivers;
+    await deleteDriver(driverId);
+    
+    // Refresh the drivers list
+    companyDrivers.value = await getCompanyDrivers(currentCompany.value.id);
 
     success('Driver removed successfully!');
   } catch (err) {

@@ -1,5 +1,5 @@
 <template>
-  <div class="create-account-card">
+  <div >
     <h2>{{ title }}</h2>
     <form @submit.prevent="handleSubmit" class="account-form">
       <div class="form-row">
@@ -147,7 +147,7 @@ const roleDefinitions = [
   { value: 'admin', label: 'Admin', requiresCompany: false },
   { value: 'manager', label: 'Manager', requiresCompany: false },
   { value: 'attendant', label: 'Attendant', requiresCompany: false },
-  { value: 'company', label: 'Company', requiresCompany: false },
+  // { value: 'company', label: 'Company', requiresCompany: false },
   { value: 'company-manager', label: 'Company Manager', requiresCompany: true },
   { value: 'driver', label: 'Driver', requiresCompany: true }
 ]
@@ -157,9 +157,9 @@ const permissionMatrix = {
   admin: ['admin', 'manager', 'attendant', 'company', 'company-manager', 'driver'],
   manager: ['manager', 'attendant', 'company', 'company-manager', 'driver'],
   'company-manager': ['company-manager', 'driver'],
+  company: ['company-manager', 'driver'], // Companies can create their own managers and drivers
   // Other roles cannot create accounts
   attendant: [],
-  company: [],
   driver: []
 }
 
@@ -175,9 +175,17 @@ const requiresCompany = computed(() => {
   return selectedRole?.requiresCompany || false
 })
 
-// Check if company is fixed (for company-manager creating accounts)
+// Check if company is fixed (for company-manager and company roles creating accounts)
 const isCompanyFixed = computed(() => {
-  return userRole.value === 'company-manager' && user.value?.companyId
+  // Company-managers are assigned to a company
+  if (userRole.value === 'company-manager' && user.value?.companyId) {
+    return true
+  }
+  // Company users are themselves the company, so use their UID
+  if (userRole.value === 'company' && user.value?.uid) {
+    return true
+  }
+  return false
 })
 
 // Available companies based on user role
@@ -185,6 +193,10 @@ const availableCompanies = computed(() => {
   // Company-managers can only assign to their own company
   if (userRole.value === 'company-manager' && user.value?.companyId) {
     return companies.value.filter(c => c.id === user.value.companyId)
+  }
+  // Company users can only assign to themselves
+  if (userRole.value === 'company' && user.value?.uid) {
+    return companies.value.filter(c => c.id === user.value.uid)
   }
   // Admins and managers can assign to any company
   return companies.value
@@ -210,10 +222,17 @@ const isFormValid = computed(() => {
   return basic
 })
 
-// Auto-set company for company-managers
+// Auto-set company for company-managers and company users
 watch(() => formData.value.role, (newRole) => {
   if (requiresCompany.value && isCompanyFixed.value) {
-    formData.value.companyId = user.value.companyId
+    // Company-managers use their assigned companyId
+    if (userRole.value === 'company-manager') {
+      formData.value.companyId = user.value.companyId
+    }
+    // Company users use their own UID as the companyId
+    else if (userRole.value === 'company') {
+      formData.value.companyId = user.value.uid
+    }
   } else if (!requiresCompany.value) {
     formData.value.companyId = ''
   }
@@ -223,9 +242,13 @@ onMounted(async () => {
   try {
     companies.value = await getCompanies()
     
-    // Pre-select company for company-managers
+    // Pre-select company for company-managers and company users
     if (isCompanyFixed.value) {
-      formData.value.companyId = user.value.companyId
+      if (userRole.value === 'company-manager') {
+        formData.value.companyId = user.value.companyId
+      } else if (userRole.value === 'company') {
+        formData.value.companyId = user.value.uid
+      }
     }
   } catch (err) {
     console.error('Failed to load companies:', err)
@@ -269,13 +292,18 @@ const handleSubmit = async () => {
       success(`Account created successfully for ${formData.value.email}`)
       
       // Reset form
+      let defaultCompanyId = ''
+      if (isCompanyFixed.value) {
+        defaultCompanyId = userRole.value === 'company' ? user.value.uid : user.value.companyId
+      }
+      
       formData.value = {
         email: '',
         displayName: '',
         password: '',
         contact: '',
         role: '',
-        companyId: isCompanyFixed.value ? user.value.companyId : '',
+        companyId: defaultCompanyId,
         carNumber: ''
       }
       

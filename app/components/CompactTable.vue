@@ -1,5 +1,5 @@
 <template>
-  <div class="table-container">
+  <div >
     <!-- Desktop Table -->
     <div class="desktop-table-wrapper desktop-only">
       <table class="responsive-table">
@@ -109,7 +109,11 @@ const formatCellValue = (value, column) => {
 /* Container */
 .table-container {
   width: 100%;
-  background: transparent;
+  background: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 /* Visibility Classes */
@@ -125,11 +129,6 @@ const formatCellValue = (value, column) => {
 .desktop-table-wrapper {
   position: relative;
   width: 100%;
-  background: white;
-  border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
 }
 
 .responsive-table {

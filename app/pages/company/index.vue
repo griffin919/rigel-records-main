@@ -3,8 +3,9 @@
     <!-- Header -->
     <div class="company-header">
       <div class="header-content">
-        <h1>Company Dashboard</h1>
-        <p class="company-info" v-if="companyName">{{ companyName }}</p>
+        <h1 v-if="companyName">{{ companyName }}</h1>
+        <h1 v-else>Company Dashboard</h1>
+        <p class="company-subtitle">Company Dashboard</p>
       </div>
    
     </div>
@@ -25,7 +26,7 @@
           @click="activeTab = 'drivers'"
         >
           <UserGroupIcon class="icon" />
-          Drivers
+          Accounts
         </button>
       </div>
 
@@ -108,7 +109,7 @@
         <!-- Transactions Table -->
         <div class="transactions-section">
           <h3>Transaction History</h3>
-          <CompactTable 
+          <ResponsiveTable 
             :columns="transactionColumns" 
             :items="filteredTransactions"
             empty-message="No transactions found">
@@ -152,13 +153,80 @@
               Mark Paid
             </button>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
         </div>
       </div>
 
       <!-- Drivers Tab -->
       <div v-show="activeTab === 'drivers'">
-        <Drivers />
+        <div class="drivers-section">
+          <!-- Create Account Section -->
+          <div class="create-account-section">
+            <CreateAccount 
+              title="Add Driver or Company Manager" 
+              @account-created="handleAccountCreated"
+            />
+          </div>
+
+          <!-- Drivers List -->
+          <div class="drivers-list-section">
+            <h3>Current Drivers & Managers ({{ companyDrivers.length }})</h3>
+            
+            <div v-if="companyDrivers.length === 0" class="empty-state">
+              <UserGroupIcon class="empty-icon" />
+              <p>No drivers or managers yet. Create one using the form above.</p>
+            </div>
+
+            <div v-else class="table-container">
+              <table class="drivers-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Contact</th>
+                    <th>Car Number</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="driver in companyDrivers" :key="driver.id">
+                    <td>
+                      <div class="driver-cell">
+                        <div class="driver-avatar">{{ (driver.displayName || driver.email).charAt(0).toUpperCase() }}</div>
+                        <div class="driver-info">
+                          <p class="driver-name">{{ driver.displayName || driver.email }}</p>
+                          <p class="driver-email">{{ driver.email }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span :class="['role-badge', driver.role]">
+                        {{ driver.role === 'driver' ? 'Driver' : 'Company Manager' }}
+                      </span>
+                    </td>
+                    <td>
+                      <div v-if="driver.contact || driver.phone">
+                        {{ driver.contact || driver.phone }}
+                      </div>
+                      <span v-else class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <div v-if="driver.carNumber">
+                        {{ driver.carNumber }}
+                      </div>
+                      <span v-else class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <span :class="['status-badge', driver.active ? 'active' : 'inactive']">
+                        {{ driver.active ? 'Active' : 'Inactive' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -170,8 +238,9 @@ import { useAuth } from '~/composables/useAuth'
 import { useTransactions } from '~/composables/useTransactions'
 import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
-import CompactTable from '~/components/CompactTable.vue'
-import Drivers from '~/components/drivers.vue'
+import ResponsiveTable from '~/components/ResponsiveTable.vue'
+import CreateAccount from '~/components/CreateAccount.vue'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import {
   BanknotesIcon,
   UserGroupIcon,
@@ -192,6 +261,7 @@ const { user, logout } = useAuth()
 const { getTransactions } = useTransactions()
 const { getCompanies } = useCompanies()
 const { success, error } = useNotification()
+const { $db } = useNuxtApp()
 
 const companyName = ref('')
 const transactions = ref([])
@@ -200,6 +270,7 @@ const filterStatus = ref('')
 const isProcessing = ref(false)
 const activeTab = ref('dashboard')
 const driverCount = ref(0)
+const companyDrivers = ref([])
 
 const transactionColumns = computed(() => [
   { key: 'driver', label: 'Driver', width: '1.5' },
@@ -209,6 +280,14 @@ const transactionColumns = computed(() => [
   { key: 'points', label: 'Points', width: '0.8' },
   { key: 'status', label: 'Status', width: '1' },
   { key: 'date', label: 'Date', width: '1.2' },
+])
+
+const driversColumns = computed(() => [
+  { key: 'name', label: 'Name', width: '1.5' },
+  { key: 'role', label: 'Role', width: '1' },
+  { key: 'contact', label: 'Contact', width: '1.2' },
+  { key: 'carNumber', label: 'Car Number', width: '1' },
+  { key: 'status', label: 'Status', width: '0.8' },
 ])
 
 onMounted(async () => {
@@ -224,11 +303,43 @@ onMounted(async () => {
       }
     }
     transactions.value = await getTransactions()
+    await loadDrivers()
   } catch (err) {
     console.error(err)
-    error('Failed to load transactions')
+    error('Failed to load data')
   }
 })
+
+async function loadDrivers() {
+  if (!user.value?.uid) {
+    console.log('No user UID available')
+    return
+  }
+  
+  console.log('Loading drivers for company:', user.value.uid)
+  
+  try {
+    const usersQuery = query(
+      collection($db, 'users'),
+      where('companyId', '==', user.value.companyId),
+      where('role', 'in', ['driver', 'company-manager'])
+    )
+    const snapshot = await getDocs(usersQuery)
+    companyDrivers.value = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    console.log('Loaded', companyDrivers.value, 'drivers/managers')
+  } catch (err) {
+    console.error('Error loading drivers:', err)
+    error('Failed to load drivers and managers')
+  }
+}
+
+async function handleAccountCreated() {
+  await loadDrivers()
+  success('Account created and added to your company')
+}
 
 const filteredTransactions = computed(() => {
   let filtered = transactions.value
@@ -366,6 +477,13 @@ function navigateToDrivers() {
   margin: 0.5rem 0 0 0;
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+.company-subtitle {
+  margin: 0.25rem 0 0 0;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .logout-btn {
@@ -878,6 +996,126 @@ function navigateToDrivers() {
 .progress-label {
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+/* Drivers Section */
+.drivers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.create-account-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+}
+
+.drivers-list-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+}
+
+.drivers-list-section h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #6b7280;
+}
+
+.empty-state .empty-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  color: #d1d5db;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.drivers-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.drivers-table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.drivers-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.drivers-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s;
+}
+
+.drivers-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.drivers-table td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.role-badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.role-badge.driver {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.role-badge.company-manager {
+  background: #fce7f3;
+  color: #9f1239;
+}
+
+.status-badge.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.text-muted {
+  color: #9ca3af;
+  font-style: italic;
 }
 
 /* Responsive */

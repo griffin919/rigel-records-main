@@ -114,7 +114,14 @@ export default defineEventHandler(async (event) => {
     
     if (recipientType === 'driver') {
       // Driver notification: transaction recorded
-      message = `Transaction Recorded!\nItem: ${transaction.itemName}\nQty: ${transaction.quantity} ${transaction.itemUnit || 'L'}\nAmount: GHS ${parseFloat(transaction.cost).toFixed(2)}\nPoints: ${transaction.pointsEarned || 0}\nCompany: ${transaction.company}`
+      const itemName = transaction.itemName || 'Fuel'
+      const quantity = parseFloat(transaction.quantity).toFixed(2)
+      const cost = parseFloat(transaction.cost).toFixed(2)
+      const carNumber = transaction.carNumber || 'N/A'
+      const couponNumber = transaction.couponNumber || 'N/A'
+      const points = transaction.pointsEarned || 0
+      
+      message = `Dear Client, thank you for your purchase of GHS ${cost} of ${itemName} at Ejisu-Krapa Shell.\nCar No: ${carNumber}.\nCoupon No: ${couponNumber}.\nLoyalty points: ${points}\n#0240431219`
     } else if (recipientType === 'company-manager') {
       // Company manager notification: new transaction
       message = `New Transaction\nDriver: ${transaction.driverName}\nCar: ${transaction.carNumber || 'N/A'}\nItem: ${transaction.itemName}\nQty: ${transaction.quantity} ${transaction.itemUnit || 'L'}\nAmount: GHS ${parseFloat(transaction.cost).toFixed(2)}\nServed by: ${transaction.servedBy || 'Staff'}`

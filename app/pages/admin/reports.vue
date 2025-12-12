@@ -72,7 +72,7 @@
       <!-- Company Summary -->
       <section>
         <h3 class="text-lg font-semibold mb-4">Company Summary</h3>
-        <CompactTable
+        <ResponsiveTable
           :columns="companySummaryColumns"
           :items="filteredCompanySummary"
           empty-message="No records found">
@@ -84,7 +84,7 @@
               View Details
             </button>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
       </section>
 
       <!-- Details Modal -->
@@ -92,7 +92,7 @@
         <div class="mobile-view"> 
         <div class="modal max-w-6xl">
           <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
-          <CompactTable
+          <ResponsiveTable
             :columns="detailTransactionColumns"
             :items="detailsItem.transactions"
             empty-message="No transactions found">
@@ -131,7 +131,7 @@
                 {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
               </button>
             </template>
-          </CompactTable>
+          </ResponsiveTable>
           <div class="flex justify-end mt-6">
             <button class="btn" @click="detailsItem = null">Close</button>
           </div>
@@ -147,7 +147,7 @@ import { ref, computed, onMounted } from "vue";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
-import CompactTable from "~/components/CompactTable.vue";
+import ResponsiveTable from "~/components/ResponsiveTable.vue";
 
 definePageMeta({
   layout: 'admin',

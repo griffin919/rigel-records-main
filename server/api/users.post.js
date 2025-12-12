@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Get request body
     const body = await readBody(event)
-    const { email, displayName, password, role, companyId, active = true } = body
+    const { email, displayName, password, role, companyId, contact, carNumber, active = true } = body
 
     // Validate required fields
     if (!email || !displayName || !password || !role) {
@@ -114,9 +114,15 @@ export default defineEventHandler(async (event) => {
       displayName,
       role,
       active,
-      phone: '',
+      contact: contact || '',
+      phone: contact || '',
       createdAt: new Date().toISOString(),
       createdBy: requestingUserId
+    }
+
+    // Add carNumber for drivers
+    if (role === 'driver' && carNumber) {
+      userDoc.carNumber = carNumber
     }
 
     // Add companyId for company-manager and driver roles
@@ -125,20 +131,6 @@ export default defineEventHandler(async (event) => {
     }
 
     await setDoc(doc(db, 'users', userRecord.uid), userDoc)
-
-    // If creating a driver, also create entry in drivers collection
-    if (role === 'driver') {
-      await setDoc(doc(db, 'drivers', userRecord.uid), {
-        name: displayName,
-        email,
-        phone: '',
-        carNumber: '',
-        companyId,
-        active,
-        createdAt: new Date().toISOString(),
-        createdBy: requestingUserId
-      })
-    }
 
     // Sign out the newly created user
     await signOut(auth)
