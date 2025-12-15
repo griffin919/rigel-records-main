@@ -18,7 +18,7 @@
       <nav class="sidebar-nav">
         <NuxtLink to="/" class="nav-item" :class="{ active: currentRoute === '/' }">
           <HomeIcon class="nav-icon" />
-          <span class="nav-label">Dashboard</span>
+          <span class="nav-label">Sales </span>
         </NuxtLink>
         <NuxtLink to="/reports" class="nav-item" :class="{ active: currentRoute === '/reports' }">
           <ChartBarIcon class="nav-icon" />

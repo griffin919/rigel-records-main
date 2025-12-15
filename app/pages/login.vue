@@ -78,7 +78,7 @@ async function handleLogin() {
       // Redirect based on role
       let redirectPath = '/'
       if (result.user.role === 'admin') {
-        redirectPath = '/admin/companies'
+        redirectPath = '/admin/reports'
       } else if (result.user.role === 'company') {
         redirectPath = '/company'
       } else if (result.user.role === 'driver') {
