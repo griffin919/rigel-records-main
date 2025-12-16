@@ -12,11 +12,9 @@
           <div class="sidebar-footer">
           <div class="avatar" @click="toggleDropdown">
             <!-- <span>{{ userInitial }}</span> -->
-           <svg
-  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="20" fill="none" 
-  stroke="currentColor" stroke-width="2.5" stroke-linecap="round"stroke-linejoin="round">
-  <path d="M12 4v16" /> <path d="m6 12 6 6 6-6" />
-</svg>         
+      <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+          <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M0,9v2h50v-2zM0,24v2h50v-2zM0,39v2h50v-2z"></path></g></g>
+      </svg>       
           </div>
 
           <!-- Dropdown Menu -->
