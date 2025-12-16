@@ -193,7 +193,7 @@ function formatDate(dt) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 40;
+  /* z-index: 40; */
 }
 
 .header-content h1 {
