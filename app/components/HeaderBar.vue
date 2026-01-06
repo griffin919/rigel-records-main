@@ -1,45 +1,40 @@
 <template>
   <div>
-      <div class="header">
-        <div class="header-top">
-          <span>
-            <img src="/shell_logo.svg" width="45px" />
-          </span>
-          <span>
-            <h1 class="greeting">Hi {{ userName }}!</h1>
-            <p class="sub-greeting">{{ greetingMessage }}</p>
-          </span>
-          <div class="sidebar-footer">
+    <div class="header">
+      <div class="header-top">
+        <span>
+          <img src="/shell_logo.svg" width="45px" />
+        </span>
+        <span>
+          <h1 class="greeting">Hi {{ userName }}!</h1>
+          <p class="sub-greeting">{{ greetingMessage }}</p>
+        </span>
+        <div class="sidebar-footer">
           <div class="avatar" @click="toggleDropdown">
-            <span>{{ userInitial }}</span>
+            <Bars3Icon class="icon" />
           </div>
 
           <!-- Dropdown Menu -->
           <div v-if="showDropdown" class="dropdown-menu">
             <button v-if="userRole === 'admin'" class="dropdown-item admin-item" @click="navigateToAdmin">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="dropdown-icon">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+              <Cog6ToothIcon class="dropdown-icon" />
               Admin Settings
             </button>
             <button class="dropdown-item logout-item" @click="handleLogout">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" class="dropdown-icon">
-                <path fill="currentColor" d="M5 3h6a3 3 0 0 1 3 3v4h-1V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-4h1v4a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3m3 9h11.25L16 8.75l.66-.75l4.5 4.5l-4.5 4.5l-.66-.75L19.25 13H8z"/>
-              </svg>
+              <ArrowRightOnRectangleIcon class="dropdown-icon" />
               Logout
             </button>
           </div>
-      </div>
         </div>
       </div>
+    </div>
   </div>
-  </template>
+</template>
 
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Bars3Icon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
 import { useRouter } from 'vue-router'
@@ -106,7 +101,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-
 .greeting {
   font-size: 1.875rem;
   font-weight: bold;
@@ -141,6 +135,12 @@ onUnmounted(() => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: transform 0.2s;
+}
+
+.avatar .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke-width: 2;
 }
 
 .avatar:hover {
@@ -228,6 +228,7 @@ onUnmounted(() => {
     font-size: 1.2rem;
   }
 }
+
 .logout-btn {
   color: #dc2626;
 }
@@ -235,21 +236,22 @@ onUnmounted(() => {
 .logout-btn:hover {
   background: rgba(220, 38, 38, 0.1);
 }
-.nav-item{
-display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
-    border-radius: 0.75rem;
-    color: #6b7280;
-    text-decoration: none;
-    transition: all 0.2s;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    border: none;
-    background: none;
-    width: 100%;
-    font-size: 0.9375rem;
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  font-size: 0.9375rem;
 }
 
 
@@ -257,7 +259,7 @@ display: flex;
 .btn-logout {
   width: 100%;
   padding: 10px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   border-radius: 8px;
@@ -271,7 +273,7 @@ display: flex;
 }
 
 .btn-logout:hover {
-  background: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .logout-icon {
@@ -283,7 +285,7 @@ display: flex;
 .btn-logout {
   width: 100%;
   padding: 10px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   border-radius: 8px;
@@ -297,7 +299,7 @@ display: flex;
 }
 
 .btn-logout:hover {
-  background: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .logout-icon {
@@ -309,7 +311,7 @@ display: flex;
 /* DESKTOP VIEW (Large Screens)                  */
 /* --------------------------------------------- */
 @media (min-width: 1024px) {
-  
+
   /* Header looks cleaner on desktop */
   .header {
     padding: 1.25rem 2rem;
@@ -323,7 +325,7 @@ display: flex;
 }
 
 @media (min-width: 1024px) {
-  
+
 
   /* FIX 3: Reduce header padding too if you want tighter layout */
   .header {
