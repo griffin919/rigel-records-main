@@ -11,10 +11,10 @@
     
     <template v-else>
       <!-- Header -->
-      <div class="mb-6">
+      <!-- <div class="mb-6">
         <h1 class="text-3xl font-bold tracking-tight mb-2">Settings</h1>
         <p class="text-muted-foreground">Manage users and inventory items</p>
-      </div>
+      </div> -->
 
       <!-- Tabs -->
       <div class="tabs-container">
