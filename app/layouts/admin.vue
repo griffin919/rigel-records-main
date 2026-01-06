@@ -11,7 +11,7 @@
           <span class="logo-icon">
             <FireIcon class="icon" />
           </span>
-          <span class="logo-text">Rigel</span>
+          <span class="logo-text">Shell</span>
         </div>
       </div>
 
