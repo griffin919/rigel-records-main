@@ -18,7 +18,7 @@
           <div v-if="showDropdown" class="dropdown-menu">
             <button v-if="userRole === 'admin'" class="dropdown-item admin-item" @click="navigateToAdmin">
               <Cog6ToothIcon class="dropdown-icon" />
-              Admin Settings
+              Admin Dashboard
             </button>
             <button class="dropdown-item logout-item" @click="handleLogout">
               <ArrowRightOnRectangleIcon class="dropdown-icon" />
