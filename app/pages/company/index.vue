@@ -148,11 +148,11 @@
             <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
           </template>
 
-          <template #row-actions="{ item }">
+          <!-- <template #row-actions="{ item }">
             <button v-if="!item.paid" class="action-btn mark-paid" @click="markAsPaid(item.id)" :disabled="isProcessing">
               Mark Paid
             </button>
-          </template>
+          </template> -->
         </ResponsiveTable>
         </div>
       </div>
@@ -238,6 +238,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useTransactions } from '~/composables/useTransactions'
 import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
+import { useFirebaseErrors } from '~/composables/useFirebaseErrors'
 import ResponsiveTable from '~/components/ResponsiveTable.vue'
 import CreateAccount from '~/components/CreateAccount.vue'
 import { collection, query, where, getDocs } from 'firebase/firestore'
@@ -261,6 +262,7 @@ const { user, logout } = useAuth()
 const { getTransactions, updateTransaction } = useTransactions()
 const { getCompanies } = useCompanies()
 const { success, error } = useNotification()
+const { getErrorMessage } = useFirebaseErrors()
 const { $db } = useNuxtApp()
 
 const companyName = ref('')
@@ -307,7 +309,7 @@ onMounted(async () => {
     await loadDrivers()
   } catch (err) {
     console.error(err)
-    error('Failed to load data')
+    error(getErrorMessage(err))
   }
 })
 
@@ -337,7 +339,7 @@ async function loadDrivers() {
     console.log('Loaded', companyDrivers.value.length, 'drivers/managers')
   } catch (err) {
     console.error('Error loading drivers:', err)
-    error('Failed to load drivers and managers')
+    error(getErrorMessage(err))
   }
 }
 
@@ -438,7 +440,7 @@ async function markAsPaid(transactionId) {
     success('Transaction marked as paid')
   } catch (err) {
     console.error(err)
-    error('Failed to update transaction')
+    error(getErrorMessage(err))
   } finally {
     isProcessing.value = false
   }
@@ -468,7 +470,6 @@ function navigateToDrivers() {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 40;
 }
 
 .header-content h1 {

@@ -60,7 +60,7 @@
       <!-- Recent Transactions -->
       <div class="transactions-section">
         <h3>Your Recent Transactions</h3>
-        <CompactTable :columns="transactionColumns" :items="driverTransactions" empty-message="No transactions yet">
+        <ResponsiveTable :columns="transactionColumns" :items="driverTransactions" empty-message="No transactions yet">
           <template #cell-amount="{ item }">
             <span class="amount-badge">GHS {{ item.cost }}</span>
           </template>
@@ -74,7 +74,7 @@
           <template #cell-date="{ item }">
             <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
           </template>
-        </CompactTable>
+        </ResponsiveTable>
       </div>
     </div>
   </div>
@@ -86,7 +86,8 @@ import { useAuth } from '~/composables/useAuth'
 import { useTransactions } from '~/composables/useTransactions'
 import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
-import CompactTable from '~/components/CompactTable.vue'
+import { useFirebaseErrors } from '~/composables/useFirebaseErrors'
+import ResponsiveTable from '~/components/ResponsiveTable.vue'
 import {
   TruckIcon,
   CurrencyDollarIcon,
@@ -105,6 +106,7 @@ const { user, logout } = useAuth()
 const { getTransactions } = useTransactions()
 const { getCompanies } = useCompanies()
 const { error } = useNotification()
+const { getErrorMessage } = useFirebaseErrors()
 
 const driverName = ref('')
 const companyName = ref('')
@@ -161,7 +163,7 @@ onMounted(async () => {
     driverTransactions.value = await getTransactions()
   } catch (err) {
     console.error(err)
-    error('Failed to load transactions')
+    error(getErrorMessage(err))
   } finally {
     isLoading.value = false
   }

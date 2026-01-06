@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword 
 } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { useFirebaseErrors } from './useFirebaseErrors'
 
 export const useAuth = () => {
   const user = useState('auth-user', () => null)
@@ -14,6 +15,7 @@ export const useAuth = () => {
   const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => userRole.value === 'admin')
   const isAttendant = computed(() => userRole.value === 'attendant')
+  const { getErrorMessage } = useFirebaseErrors()
 
   // Initialize auth state
   const initAuth = async () => {
@@ -62,7 +64,7 @@ export const useAuth = () => {
       
       if (!userData) {
         await signOut($auth)
-        throw new Error('User profile not found')
+        throw new Error('Account not found. Please contact support.')
       }
       
       user.value = {
@@ -77,7 +79,7 @@ export const useAuth = () => {
       return { success: true, user: user.value }
     } catch (error) {
       console.error('Login error:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: getErrorMessage(error) }
     }
   }
 
@@ -92,7 +94,7 @@ export const useAuth = () => {
       return { success: true }
     } catch (error) {
       console.error('Logout error:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: getErrorMessage(error) }
     }
   }
 

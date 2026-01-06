@@ -42,7 +42,17 @@
               </div>
               <div class="field">
                 <label>Contact phone</label>
-                <input v-model="company.phone" required />
+                <input 
+                  v-model="company.phone" 
+                  type="tel"
+                  placeholder="0241234567"
+                  pattern="^(0|\+?233)?[2-5][0-9]{8}$"
+                  title="Enter a valid Ghana phone number (e.g., 0241234567)"
+                  required 
+                  @blur="validatePhone"
+                  :class="{ 'error-field': phoneError }"
+                />
+                <small v-if="phoneError" class="error-text">{{ phoneError }}</small>
               </div>
             </div>
             <div class="form-actions">
@@ -89,6 +99,8 @@ import { useRouter } from "vue-router";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
+import { usePhoneValidation } from "~/composables/usePhoneValidation";
+import { useFirebaseErrors } from "~/composables/useFirebaseErrors";
 import ResponsiveTable from "~/components/ResponsiveTable.vue";
 import { PlusIcon, EyeIcon } from '@heroicons/vue/24/outline';
 
@@ -101,12 +113,15 @@ const router = useRouter();
 const { getTransactions, updateTransaction } = useTransactions();
 const { getCompanies, addCompany, updateCompany } = useCompanies();
 const { success, error } = useNotification();
+const { validateGhanaPhone, formatForStorage } = usePhoneValidation();
+const { getErrorMessage } = useFirebaseErrors();
 
 const transactions = ref([])
 const companies = ref([])
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const loadError = ref('')
+const phoneError = ref('')
 
 const companyColumns = computed(() => [
   { key: 'name', label: 'Company Name', width: '1.5' },
@@ -131,8 +146,9 @@ onMounted(async () => {
     })
   } catch (err) {
     console.error('Load error:', err)
-    loadError.value = err?.message || 'Failed to load data'
-    error('Failed to load data')
+    const errorMsg = getErrorMessage(err)
+    loadError.value = errorMsg
+    error(errorMsg)
   } finally {
     isLoading.value = false
   }
@@ -149,10 +165,27 @@ const company = reactive({
 
 function openAddCompany() {
   showAddCompany.value = true;
+  phoneError.value = '';
 }
 
 function closeAddCompany() {
   showAddCompany.value = false;
+  phoneError.value = '';
+}
+
+function validatePhone() {
+  if (!company.phone) {
+    phoneError.value = ''
+    return
+  }
+  const validation = validateGhanaPhone(company.phone)
+  if (!validation.valid) {
+    phoneError.value = validation.message
+  } else {
+    phoneError.value = ''
+    // Auto-format to international format
+    company.phone = validation.formatted
+  }
 }
 
 async function handleAddCompany() {
@@ -166,27 +199,58 @@ async function handleAddCompany() {
     return;
   }
 
+  // Validate phone
+  validatePhone()
+  if (phoneError.value) {
+    error('Please fix the phone number')
+    return
+  }
+
+  const formattedPhone = formatForStorage(company.phone)
+  if (!formattedPhone) {
+    error('Invalid phone number')
+    return
+  }
+
   isSubmitting.value = true;
   try {
     const newId = await addCompany({
       name: company.name,
       contactPerson: company.contactPerson,
       location: company.location,
-      phone: company.phone,
+      phone: formattedPhone,
     });
 
-    companies.value.push({ id: newId, ...company });
+    companies.value.push({ id: newId, ...company, phone: formattedPhone });
     Object.keys(company).forEach((k) => (company[k] = ""));
+    phoneError.value = '';
     showAddCompany.value = false;
     success("Company added successfully!");
   } catch (err) {
     console.error(err);
-    error("Failed to add company.");
+    error(getErrorMessage(err));
   } finally {
     isSubmitting.value = false;
   }
 }
 </script>
+
+<style scoped>
+.error-field {
+  border-color: #dc2626 !important;
+}
+
+.error-field:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+</style>
 
 <style scoped>
 .btn-icon {

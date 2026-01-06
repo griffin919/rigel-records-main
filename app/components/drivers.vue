@@ -128,9 +128,14 @@
                 v-model="form.phone" 
                 type="tel" 
                 placeholder="0241234567"
+                pattern="^(0|\+?233)?[2-5][0-9]{8}$"
+                title="Enter a valid Ghana phone number (e.g., 0241234567)"
                 required
                 :disabled="isSubmitting"
+                @blur="validatePhone"
+                :class="{ 'error-field': phoneError }"
               />
+              <small v-if="phoneError" class="error-text">{{ phoneError }}</small>
             </div>
 
             <div class="form-group">
@@ -164,6 +169,8 @@
 import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useNotification } from '~/composables/useNotification'
+import { usePhoneValidation } from '~/composables/usePhoneValidation'
+import { useFirebaseErrors } from '~/composables/useFirebaseErrors'
 import { doc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore'
 import {
   createUserWithEmailAndPassword,
@@ -180,6 +187,8 @@ import {
 
 const { user } = useAuth()
 const { success, error } = useNotification()
+const { validateGhanaPhone, formatForStorage } = usePhoneValidation()
+const { getErrorMessage } = useFirebaseErrors()
 const { $auth, $db } = useNuxtApp()
 
 const drivers = ref([])
@@ -187,6 +196,7 @@ const showForm = ref(false)
 const isSubmitting = ref(false)
 const editingDriver = ref(null)
 const isLoading = ref(true)
+const phoneError = ref('')
 
 const form = ref({
   name: '',
@@ -240,7 +250,7 @@ async function loadDrivers() {
     console.log('Drivers loaded:', drivers.value)
   } catch (err) {
     console.error('Error loading drivers:', err)
-    error('Failed to load drivers')
+    error(getErrorMessage(err))
   }
 }
 
@@ -270,12 +280,41 @@ function resetForm() {
     phone: '',
     carNumber: ''
   }
+  phoneError.value = ''
+}
+
+function validatePhone() {
+  if (!form.value.phone) {
+    phoneError.value = ''
+    return
+  }
+  const validation = validateGhanaPhone(form.value.phone)
+  if (!validation.valid) {
+    phoneError.value = validation.message
+  } else {
+    phoneError.value = ''
+    // Auto-format to international format
+    form.value.phone = validation.formatted
+  }
 }
 
 async function submitForm() {
   // Validate
   if (!form.value.name || !form.value.email || !form.value.phone || !form.value.carNumber) {
     error('Please fill in all required fields')
+    return
+  }
+
+  // Validate phone
+  validatePhone()
+  if (phoneError.value) {
+    error('Please fix the phone number')
+    return
+  }
+
+  const formattedPhone = formatForStorage(form.value.phone)
+  if (!formattedPhone) {
+    error('Invalid phone number')
     return
   }
 
@@ -295,8 +334,8 @@ async function submitForm() {
       // Update existing driver in users collection
       await updateDoc(doc($db, 'users', editingDriver.value.id), {
         displayName: form.value.name,
-        contact: form.value.phone,
-        phone: form.value.phone,
+        contact: formattedPhone,
+        phone: formattedPhone,
         carNumber: form.value.carNumber,
         updatedAt: new Date().toISOString()
       })
@@ -315,8 +354,8 @@ async function submitForm() {
         displayName: form.value.name,
         role: 'driver',
         active: true,
-        contact: form.value.phone,
-        phone: form.value.phone,
+        contact: formattedPhone,
+        phone: formattedPhone,
         carNumber: form.value.carNumber,
         companyId: user.value.uid,
         createdAt: new Date().toISOString(),
@@ -333,11 +372,7 @@ async function submitForm() {
     await loadDrivers()
   } catch (err) {
     console.error('Error saving driver:', err)
-    if (err.code === 'auth/email-already-in-use') {
-      error('This email is already registered')
-    } else {
-      error(err.message || 'Failed to save driver')
-    }
+    error(getErrorMessage(err))
   } finally {
     isSubmitting.value = false
   }
@@ -752,6 +787,21 @@ function formatDate(date) {
 .form-group input:focus {
   border-color: #FFC800;
   box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+}
+
+.error-field {
+  border-color: #dc2626 !important;
+}
+
+.error-field:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 .form-group input:disabled {

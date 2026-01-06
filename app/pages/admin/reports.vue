@@ -147,6 +147,7 @@ import { ref, computed, onMounted } from "vue";
 import { useTransactions } from "~/composables/useTransactions";
 import { useCompanies } from "~/composables/useCompanies";
 import { useNotification } from "~/composables/useNotification";
+import { useFirebaseErrors } from "~/composables/useFirebaseErrors";
 import ResponsiveTable from "~/components/ResponsiveTable.vue";
 
 definePageMeta({
@@ -157,6 +158,7 @@ definePageMeta({
 const { getTransactions, updateTransaction } = useTransactions();
 const { getCompanies } = useCompanies();
 const { success, error } = useNotification();
+const { getErrorMessage } = useFirebaseErrors();
 
 const transactions = ref([])
 const companies = ref([])
@@ -171,8 +173,9 @@ onMounted(async () => {
     companies.value = (await getCompanies()) || []
   } catch (err) {
     console.error('Load error:', err)
-    loadError.value = err?.message || 'Failed to load data'
-    error('Failed to load data')
+    const errorMsg = getErrorMessage(err)
+    loadError.value = errorMsg
+    error(errorMsg)
   } finally {
     isLoading.value = false
   }
@@ -187,24 +190,24 @@ async function togglePaidStatus(transaction) {
   try {
     await updateTransaction(transaction.id, { paid: !transaction.paid });
     
-    // Update local state
-    const index = transactions.value.findIndex(t => t.id === transaction.id);
-    if (index > -1) {
-      transactions.value[index].paid = !transaction.paid;
-    }
+    // Refetch data to ensure everything is in sync
+    transactions.value = (await getTransactions()) || [];
     
-    // Update in details modal if open
+    // Update details modal if open
     if (detailsItem.value) {
-      const modalIndex = detailsItem.value.transactions.findIndex(t => t.id === transaction.id);
-      if (modalIndex > -1) {
-        detailsItem.value.transactions[modalIndex].paid = !transaction.paid;
+      const updatedCompany = filteredCompanySummary.value.find(c => c.company === detailsItem.value.company);
+      if (updatedCompany) {
+        detailsItem.value = { 
+          company: updatedCompany.company, 
+          transactions: updatedCompany.transactions 
+        };
       }
     }
     
     success(`Transaction marked as ${!transaction.paid ? 'paid' : 'unpaid'}`);
   } catch (err) {
     console.error(err);
-    error('Failed to update transaction status');
+    error(getErrorMessage(err));
   }
 }
 

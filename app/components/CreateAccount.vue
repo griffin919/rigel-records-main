@@ -43,9 +43,14 @@
             v-model="formData.contact" 
             type="tel" 
             required 
-            placeholder="Phone number"
+            placeholder="0241234567"
+            pattern="^(0|\+?233)?[2-5][0-9]{8}$"
+            title="Enter a valid Ghana phone number (e.g., 0241234567)"
             :disabled="isSubmitting"
+            @blur="validatePhone"
+            :class="{ 'error-field': phoneError }"
           />
+          <small v-if="phoneError" class="error-text">{{ phoneError }}</small>
         </div>
       </div>
 
@@ -114,6 +119,8 @@ import { useAuth } from '~/composables/useAuth'
 import { useCompanies } from '~/composables/useCompanies'
 import { useNotification } from '~/composables/useNotification'
 import { useAuditLog } from '~/composables/useAuditLog'
+import { usePhoneValidation } from '~/composables/usePhoneValidation'
+import { useFirebaseErrors } from '~/composables/useFirebaseErrors'
 
 const props = defineProps({
   title: {
@@ -128,9 +135,12 @@ const { user, userRole } = useAuth()
 const { getCompanies } = useCompanies()
 const { success, error } = useNotification()
 const { logAction } = useAuditLog()
+const { validateGhanaPhone, formatForStorage } = usePhoneValidation()
+const { getErrorMessage } = useFirebaseErrors()
 
 const isSubmitting = ref(false)
 const companies = ref([])
+const phoneError = ref('')
 
 const formData = ref({
   email: '',
@@ -252,16 +262,46 @@ onMounted(async () => {
     }
   } catch (err) {
     console.error('Failed to load companies:', err)
-    error('Failed to load companies')
+    error(getErrorMessage(err))
   }
 })
+
+const validatePhone = () => {
+  if (!formData.value.contact) {
+    phoneError.value = ''
+    return
+  }
+  const validation = validateGhanaPhone(formData.value.contact)
+  if (!validation.valid) {
+    phoneError.value = validation.message
+  } else {
+    phoneError.value = ''
+    // Auto-format to international format
+    formData.value.contact = validation.formatted
+  }
+}
 
 const handleSubmit = async () => {
   if (!isFormValid.value || isSubmitting.value) return
   
+  // Validate phone before submission
+  validatePhone()
+  if (phoneError.value) {
+    error('Please fix the phone number')
+    return
+  }
+  
   isSubmitting.value = true
   
   try {
+    // Format phone for storage
+    const formattedPhone = formatForStorage(formData.value.contact)
+    if (!formattedPhone) {
+      error('Invalid phone number')
+      isSubmitting.value = false
+      return
+    }
+    
     // Call API to create user
     const response = await $fetch('/api/users', {
       method: 'POST',
@@ -272,7 +312,7 @@ const handleSubmit = async () => {
         email: formData.value.email,
         displayName: formData.value.displayName,
         password: formData.value.password,
-        contact: formData.value.contact,
+        contact: formattedPhone,
         role: formData.value.role,
         companyId: formData.value.companyId || null,
         carNumber: formData.value.carNumber || null,
@@ -314,7 +354,7 @@ const handleSubmit = async () => {
     }
   } catch (err) {
     console.error('Account creation error:', err)
-    error(err.data?.error || 'Failed to create account')
+    error(getErrorMessage(err))
   } finally {
     isSubmitting.value = false
   }
@@ -364,6 +404,28 @@ const handleSubmit = async () => {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #FFC800;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+}
+
+.error-field {
+  border-color: #dc2626 !important;
+}
+
+.error-field:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 .form-group input,
