@@ -78,6 +78,13 @@
             <span>GHS {{ item.cost }}</span>
           </template>
 
+          <template #cell-photo="{ item }">
+            <a v-if="item.photoURL" :href="item.photoURL" target="_blank" class="photo-link">
+              <img :src="item.photoURL" alt="Transaction photo" class="transaction-photo" />
+            </a>
+            <span v-else class="text-muted">-</span>
+          </template>
+
           <template #cell-date="{ item }">
             <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
           </template>
@@ -229,6 +236,8 @@ import { useNotification } from '~/composables/useNotification'
 import { useItems } from '~/composables/useItems'
 import { useAuth } from '~/composables/useAuth'
 import { useDrivers } from '~/composables/useDrivers'
+import { usePhoneValidation } from '~/composables/usePhoneValidation'
+import { useFirebaseErrors } from '~/composables/useFirebaseErrors'
 import ResponsiveTable from '~/components/ResponsiveTable.vue'
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { getStorage } from 'firebase/storage'
@@ -251,6 +260,8 @@ const { getTransactions, addTransaction } = useTransactions()
 const { success, error } = useNotification()
 const { user, userRole } = useAuth()
 const { getCompanyDrivers } = useDrivers()
+const { validateGhanaPhone, formatForStorage } = usePhoneValidation()
+const { getErrorMessage } = useFirebaseErrors()
 
 /* shared state */
 const companies = ref([])
@@ -295,7 +306,7 @@ onMounted(async () => {
     transactions.value = await getTransactions()
   } catch (err) {
     console.error(err)
-    error('Failed to load data')
+    error(getErrorMessage(err))
   } finally {
     isLoading.value = false
   }
@@ -381,7 +392,7 @@ async function handlePhotoUpload(event) {
     success('Photo uploaded successfully!')
   } catch (err) {
     console.error('Upload error:', err)
-    error('Failed to upload photo. Please try again.')
+    error(getErrorMessage(err))
   } finally {
     isUploadingPhoto.value = false
   }
@@ -395,12 +406,6 @@ function removePhoto() {
 }
 
 // Validation
-const validatePhone = (phone) => {
-  // Ghana phone format: 10 digits starting with 0, or with country code
-  const pattern = /^(\+233|0)[0-9]{9}$/
-  return pattern.test(phone.replace(/\s/g, ''))
-}
-
 const validateForm = () => {
   if (!form.company) {
     error('Please select a company')
@@ -414,10 +419,14 @@ const validateForm = () => {
     error('Please enter phone number')
     return false
   }
-  if (!validatePhone(form.phone)) {
-    error('Invalid phone number format. Use Ghana format (e.g., 0241234567)')
+  
+  // Validate phone using Ghana phone validation
+  const phoneValidation = validateGhanaPhone(form.phone)
+  if (!phoneValidation.valid) {
+    error(phoneValidation.message)
     return false
   }
+  
   if (!form.selectedItem) {
     error('Please select an item')
     return false
@@ -438,6 +447,9 @@ async function submitEntry() {
 
   isSubmitting.value = true
   try {
+    // Format phone number for storage
+    const formattedPhone = formatForStorage(form.phone)
+    
     // Calculate points earned: item points × quantity
     const pointsEarned = (form.selectedItem.points || 0) * form.quantity
 
@@ -446,7 +458,7 @@ async function submitEntry() {
       company: form.company.name,
       driverId: form.driverId || '',
       driverName: form.driverName,
-      phone: form.phone,
+      phone: formattedPhone,
       carNumber: form.carNumber,
       itemId: form.selectedItem.id,
       itemName: form.selectedItem.name,
@@ -474,7 +486,7 @@ async function submitEntry() {
     showForm.value = false
   } catch (err) {
     console.error(err)
-    error('Failed to record entry. Please try again.')
+    error(getErrorMessage(err))
   } finally {
     isSubmitting.value = false
   }
@@ -531,6 +543,7 @@ const tableColumns = computed(() => [
   { key: 'item', label: 'Item', width: '1' },
   { key: 'quantity', label: 'Quantity', width: '1' },
   { key: 'cost', label: 'Cost', width: '0.8' },
+  { key: 'photo', label: 'Photo', width: '0.8' },
   { key: 'date', label: 'Date & Time', width: '1.2' },
 ])
 
@@ -858,6 +871,36 @@ const todaySummary = computed(() => {
 .date-cell {
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+/* Transaction Photo */
+.photo-link {
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.photo-link:hover {
+  transform: scale(1.05);
+}
+
+.transaction-photo {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.transaction-photo:hover {
+  border-color: #FFC800;
+  box-shadow: 0 2px 8px rgba(255, 200, 0, 0.3);
+}
+
+.text-muted {
+  color: #9ca3af;
+  font-size: 0.75rem;
 }
 
 .transactions-list {

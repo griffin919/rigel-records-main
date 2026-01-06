@@ -82,6 +82,13 @@
                   <span class="font-bold text-yellow-600">{{ item.pointsEarned || 0 }} pts</span>
                 </template>
 
+                <template #cell-photoURL="{ item }">
+                  <a v-if="item.photoURL" :href="item.photoURL" target="_blank" class="photo-link">
+                    <img :src="item.photoURL" alt="Transaction photo" class="transaction-photo" />
+                  </a>
+                  <span v-else class="text-muted-foreground text-sm">-</span>
+                </template>
+
                 <template #cell-createdAt="{ item }">
                   <span class="text-muted-foreground text-sm">{{ formatDate(item.createdAt) }}</span>
                 </template>
@@ -233,6 +240,7 @@ const transactionColumns = computed(() => [
   { key: 'quantity', label: 'Qty', width: '0.8' },
   { key: 'cost', label: 'Cost', width: '1' },
   { key: 'pointsEarned', label: 'Points', width: '0.8' },
+  { key: 'photoURL', label: 'Photo', width: '0.8' },
   { key: 'createdAt', label: 'Date', width: '1.2' },
   { key: 'paid', label: 'Status', width: '1' },
 ]);
@@ -558,6 +566,31 @@ async function removeDriver(driverId) {
 .empty-state small {
   font-size: 0.875rem;
   color: #9ca3af;
+}
+
+/* Transaction Photo */
+.photo-link {
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.photo-link:hover {
+  transform: scale(1.05);
+}
+
+.transaction-photo {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.transaction-photo:hover {
+  border-color: #FFC800;
+  box-shadow: 0 2px 8px rgba(255, 200, 0, 0.3);
 }
 
 /* Mobile Responsive */
