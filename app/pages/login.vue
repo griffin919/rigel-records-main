@@ -5,7 +5,7 @@
         <div class="logo-large">
           <img src="/shell_logo.svg"/>
         </div>
-        <p class="subtitle">Fuel Management System</p>
+        <p class="subtitle">Company Fuel Management System</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="login-form">
