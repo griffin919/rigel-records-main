@@ -81,6 +81,9 @@
           <template #cell-date="{ item }">
             <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
           </template>
+          <template #cell-servedBy="{ item }">
+            <div class="date-cell">{{ item.servedBy }}</div>
+          </template>
         </ResponsiveTable>
       </div>
     </div>
@@ -152,6 +155,7 @@ const transactionColumns = computed(() => [
   { key: 'photo', label: 'Photo', width: '0.8' },
   { key: 'status', label: 'Status', width: '1' },
   { key: 'date', label: 'Date', width: '1.2' },
+  { key: 'servedBy', label: 'Served By', width: '1' },
 ])
 
 onMounted(async () => {

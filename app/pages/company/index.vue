@@ -7,24 +7,18 @@
         <h1 v-else>Company Dashboard</h1>
         <p class="company-subtitle">Company Dashboard</p>
       </div>
-   
+
     </div>
 
     <!-- Main Content -->
     <div class="company-main">
       <!-- Navigation Tabs -->
       <div class="nav-tabs">
-        <button 
-          :class="['nav-tab', { active: activeTab === 'dashboard' }]"
-          @click="activeTab = 'dashboard'"
-        >
+        <button :class="['nav-tab', { active: activeTab === 'dashboard' }]" @click="activeTab = 'dashboard'">
           <ChartBarIcon class="icon" />
           Dashboard
         </button>
-        <button 
-          :class="['nav-tab', { active: activeTab === 'drivers' }]"
-          @click="activeTab = 'drivers'"
-        >
+        <button :class="['nav-tab', { active: activeTab === 'drivers' }]" @click="activeTab = 'drivers'">
           <UserGroupIcon class="icon" />
           Accounts
         </button>
@@ -48,7 +42,8 @@
           <div class="overview-card points-card">
             <div class="card-icon points-icon">
               <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
             <div class="card-content">
@@ -109,58 +104,59 @@
         <!-- Transactions Table -->
         <div class="transactions-section">
           <h3>Transaction History</h3>
-          <ResponsiveTable 
-            :columns="transactionColumns" 
-            :items="filteredTransactions"
+          <ResponsiveTable :columns="transactionColumns" :items="filteredTransactions"
             empty-message="No transactions found">
-          <template #cell-driver="{ item }">
-            <div class="driver-cell">
-              <div class="driver-avatar">{{ item.driverName.charAt(0).toUpperCase() }}</div>
-              <div class="driver-info">
-                <p class="driver-name">{{ item.driverName }}</p>
-                <p class="driver-phone">{{ item.phone }}</p>
+            <template #cell-driver="{ item }">
+              <div class="driver-cell">
+                <div class="driver-avatar">{{ item.driverName.charAt(0).toUpperCase() }}</div>
+                <div class="driver-info">
+                  <p class="driver-name">{{ item.driverName }}</p>
+                  <p class="driver-phone">{{ item.phone }}</p>
+                </div>
               </div>
-            </div>
-          </template>
+            </template>
 
-          <template #cell-item="{ item }">
-            <div class="item-cell">
-              <span class="item-color" :style="{ backgroundColor: '#FFC800' }"></span>
-              <span>{{ item.itemName }}</span>
-            </div>
-          </template>
+            <template #cell-item="{ item }">
+              <div class="item-cell">
+                <span class="item-color" :style="{ backgroundColor: '#FFC800' }"></span>
+                <span>{{ item.itemName }}</span>
+              </div>
+            </template>
 
-          <template #cell-amount="{ item }">
-            <span class="amount-value">GHS {{ item.cost }}</span>
-          </template>
+            <template #cell-amount="{ item }">
+              <span class="amount-value">GHS {{ item.cost }}</span>
+            </template>
 
-          <template #cell-points="{ item }">
-            <span class="points-badge">{{ item.pointsEarned || 0 }} pts</span>
-          </template>
+            <template #cell-points="{ item }">
+              <span class="points-badge">{{ item.pointsEarned || 0 }} pts</span>
+            </template>
 
-          <template #cell-photo="{ item }">
-            <a v-if="item.photoURL" :href="item.photoURL" target="_blank" class="photo-link">
-              <img :src="item.photoURL" alt="Transaction photo" class="transaction-photo" />
-            </a>
-            <span v-else class="text-muted">-</span>
-          </template>
+            <template #cell-photo="{ item }">
+              <a v-if="item.photoURL" :href="item.photoURL" target="_blank" class="photo-link">
+                <img :src="item.photoURL" alt="Transaction photo" class="transaction-photo" />
+              </a>
+              <span v-else class="text-muted">-</span>
+            </template>
 
-          <template #cell-status="{ item }">
-            <span :class="['status-badge', item.paid ? 'paid' : 'pending']">
-              {{ item.paid ? 'Paid' : 'Pending' }}
-            </span>
-          </template>
+            <template #cell-status="{ item }">
+              <span :class="['status-badge', item.paid ? 'paid' : 'pending']">
+                {{ item.paid ? 'Paid' : 'Pending' }}
+              </span>
+            </template>
 
-          <template #cell-date="{ item }">
-            <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
-          </template>
+            <template #cell-date="{ item }">
+              <div class="date-cell">{{ formatDate(item.createdAt) }}</div>
+            </template>
+            <template #cell-servedBy="{ item }">
+              <div class="date-cell">{{ item.servedBy }}</div>
+            </template>
 
-          <!-- <template #row-actions="{ item }">
+            <!-- <template #row-actions="{ item }">
             <button v-if="!item.paid" class="action-btn mark-paid" @click="markAsPaid(item.id)" :disabled="isProcessing">
               Mark Paid
             </button>
           </template> -->
-        </ResponsiveTable>
+          </ResponsiveTable>
         </div>
       </div>
 
@@ -169,16 +165,13 @@
         <div class="drivers-section">
           <!-- Create Account Section -->
           <div class="create-account-section">
-            <CreateAccount 
-              title="Add Driver or Company Manager" 
-              @account-created="handleAccountCreated"
-            />
+            <CreateAccount title="Add Driver or Company Manager" @account-created="handleAccountCreated" />
           </div>
 
           <!-- Drivers List -->
           <div class="drivers-list-section">
             <h3>Current Drivers & Managers ({{ companyDrivers.length }})</h3>
-            
+
             <div v-if="companyDrivers.length === 0" class="empty-state">
               <UserGroupIcon class="empty-icon" />
               <p>No drivers or managers yet. Create one using the form above.</p>
@@ -199,7 +192,8 @@
                   <tr v-for="driver in companyDrivers" :key="driver.id">
                     <td>
                       <div class="driver-cell">
-                        <div class="driver-avatar">{{ (driver.displayName || driver.email).charAt(0).toUpperCase() }}</div>
+                        <div class="driver-avatar">{{ (driver.displayName || driver.email).charAt(0).toUpperCase() }}
+                        </div>
                         <div class="driver-info">
                           <p class="driver-name">{{ driver.displayName || driver.email }}</p>
                           <p class="driver-email">{{ driver.email }}</p>
@@ -290,6 +284,7 @@ const transactionColumns = computed(() => [
   { key: 'photo', label: 'Photo', width: '0.8' },
   { key: 'status', label: 'Status', width: '1' },
   { key: 'date', label: 'Date', width: '1.2' },
+  { key: 'servedBy', label: 'Served By', width: '1' },
 ])
 
 const driversColumns = computed(() => [
@@ -313,7 +308,7 @@ onMounted(async () => {
       }
     }
     transactions.value = await getTransactions()
-    console.log("  transactions.value",   transactions.value)
+    console.log("  transactions.value", transactions.value)
     await loadDrivers()
   } catch (err) {
     console.error(err)
@@ -326,13 +321,13 @@ async function loadDrivers() {
     console.log('No user UID available')
     return
   }
-  
+
   // For company role, use their own UID as companyId
   // For company-manager role, use the companyId from their profile
   const companyId = user.value.role === 'company' ? user.value.uid : user.value.companyId
-  
+
   console.log('Loading drivers for company:', companyId)
-  
+
   try {
     const usersQuery = query(
       collection($db, 'users'),
@@ -438,13 +433,13 @@ async function markAsPaid(transactionId) {
   isProcessing.value = true
   try {
     await updateTransaction(transactionId, { paid: true })
-    
+
     // Update local state
     const index = transactions.value.findIndex(t => t.id === transactionId)
     if (index > -1) {
       transactions.value[index].paid = true
     }
-    
+
     success('Transaction marked as paid')
   } catch (err) {
     console.error(err)

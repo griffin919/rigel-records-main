@@ -3,12 +3,12 @@
     <div v-if="loadError" class="error-state">
       <strong>Error:</strong> {{ loadError }}
     </div>
-    
+
     <div v-if="isLoading" class="loading-state">
       <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
-    
+
     <template v-else>
       <!-- Header -->
       <div class="mb-6">
@@ -50,19 +50,22 @@
         <div class="filters-actions">
           <button class="filter-btn filter-btn-apply" @click="applyFilter">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
             <span>Apply</span>
           </button>
           <button class="filter-btn filter-btn-reset" @click="resetFilter">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span>Reset</span>
           </button>
           <button class="filter-btn filter-btn-download" @click="downloadCSV">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>CSV</span>
           </button>
@@ -72,9 +75,7 @@
       <!-- Company Summary -->
       <section>
         <h3 class="text-lg font-semibold mb-4">Company Summary</h3>
-        <ResponsiveTable
-          :columns="companySummaryColumns"
-          :items="filteredCompanySummary"
+        <ResponsiveTable :columns="companySummaryColumns" :items="filteredCompanySummary"
           empty-message="No records found">
           <template #cell-amountOwed="{ item }">
             <span class="font-semibold text-lg">GHS {{ item.amountOwed.toFixed(2) }}</span>
@@ -89,53 +90,52 @@
 
       <!-- Details Modal -->
       <div v-if="detailsItem" class="modal-backdrop" @click.self="detailsItem = null">
-        <div class="mobile-view"> 
-        <div class="modal max-w-6xl">
-          <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
-          <ResponsiveTable
-            :columns="detailTransactionColumns"
-            :items="detailsItem.transactions"
-            empty-message="No transactions found">
-            <template #cell-itemName="{ item }">
-              {{ item.itemName || 'Fuel' }}
-            </template>
-            <template #cell-quantity="{ item }">
-              {{ item.quantity || item.fuelQuantity }} {{ item.itemUnit || 'L' }}
-            </template>
-            <template #cell-cost="{ item }">
-              <span class="font-semibold">GHS {{ item.cost }}</span>
-            </template>
-            <template #cell-couponNumber="{ item }">
-              {{ item.couponNumber || '-' }}
-            </template>
-            <template #cell-photoURL="{ item }">
-              <a v-if="item.photoURL" :href="item.photoURL" target="_blank" class="text-blue-600 hover:underline text-sm">
-                View
-              </a>
-              <span v-else class="text-muted-foreground">-</span>
-            </template>
-            <template #cell-createdAt="{ item }">
-              <span class="text-muted-foreground text-sm">{{ formatDate(item.createdAt) }}</span>
-            </template>
-            <template #cell-paid="{ item }">
-              <span :class="['status-badge', item.paid ? 'status-paid' : 'status-unpaid']">
-                {{ item.paid ? 'Paid' : 'Unpaid' }}
-              </span>
-            </template>
-            <template #row-actions="{ item }">
-              <button 
-                class="btn-small" 
-                :class="item.paid ? 'btn-warning' : 'btn-success'"
-                @click="togglePaidStatus(item)"
-              >
-                {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
-              </button>
-            </template>
-          </ResponsiveTable>
-          <div class="flex justify-end mt-6">
-            <button class="btn" @click="detailsItem = null">Close</button>
+        <div class="mobile-view">
+          <div class="modal max-w-6xl">
+            <h3 class="text-xl font-semibold mb-4">{{ detailsItem.company }} — Full Report</h3>
+            <ResponsiveTable :columns="detailTransactionColumns" :items="detailsItem.transactions"
+              empty-message="No transactions found">
+              <template #cell-itemName="{ item }">
+                {{ item.itemName || 'Fuel' }}
+              </template>
+              <template #cell-quantity="{ item }">
+                {{ item.quantity || item.fuelQuantity }} {{ item.itemUnit || 'L' }}
+              </template>
+              <template #cell-cost="{ item }">
+                <span class="font-semibold">GHS {{ item.cost }}</span>
+              </template>
+              <template #cell-couponNumber="{ item }">
+                {{ item.couponNumber || '-' }}
+              </template>
+              <template #cell-photoURL="{ item }">
+                <a v-if="item.photoURL" :href="item.photoURL" target="_blank"
+                  class="text-blue-600 hover:underline text-sm">
+                  View
+                </a>
+                <span v-else class="text-muted-foreground">-</span>
+              </template>
+              <template #cell-createdAt="{ item }">
+                <span class="text-muted-foreground text-sm">{{ formatDate(item.createdAt) }}</span>
+              </template>
+              <template #cell-servedBy="{ item }">
+                <span class="text-muted-foreground text-sm">{{ item.servedBy }}</span>
+              </template>
+              <template #cell-paid="{ item }">
+                <span :class="['status-badge', item.paid ? 'status-paid' : 'status-unpaid']">
+                  {{ item.paid ? 'Paid' : 'Unpaid' }}
+                </span>
+              </template>
+              <template #row-actions="{ item }">
+                <button class="btn-small" :class="item.paid ? 'btn-warning' : 'btn-success'"
+                  @click="togglePaidStatus(item)">
+                  {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
+                </button>
+              </template>
+            </ResponsiveTable>
+            <div class="flex justify-end mt-6">
+              <button class="btn" @click="detailsItem = null">Close</button>
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </template>
@@ -189,21 +189,21 @@ const filterCompany = ref("");
 async function togglePaidStatus(transaction) {
   try {
     await updateTransaction(transaction.id, { paid: !transaction.paid });
-    
+
     // Refetch data to ensure everything is in sync
     transactions.value = (await getTransactions()) || [];
-    
+
     // Update details modal if open
     if (detailsItem.value) {
       const updatedCompany = filteredCompanySummary.value.find(c => c.company === detailsItem.value.company);
       if (updatedCompany) {
-        detailsItem.value = { 
-          company: updatedCompany.company, 
-          transactions: updatedCompany.transactions 
+        detailsItem.value = {
+          company: updatedCompany.company,
+          transactions: updatedCompany.transactions
         };
       }
     }
-    
+
     success(`Transaction marked as ${!transaction.paid ? 'paid' : 'unpaid'}`);
   } catch (err) {
     console.error(err);
@@ -243,20 +243,20 @@ const companySummary = computed(() => {
 
 const filteredCompanySummary = computed(() => {
   let list = companySummary.value;
-  
+
   // Apply company filter
   if (filterCompany.value) {
     list = list.filter((c) => c.company === filterCompany.value);
   }
-  
+
   // Apply date filters - need to recalculate based on filtered transactions
   if (from.value || to.value) {
     const fromDate = from.value ? new Date(from.value) : null;
     const toDate = to.value ? new Date(to.value) : null;
-    
+
     if (fromDate) fromDate.setHours(0, 0, 0, 0);
     if (toDate) toDate.setHours(23, 59, 59, 999);
-    
+
     list = list.map((c) => {
       // Filter transactions by date
       const filteredTransactions = c.transactions.filter((t) => {
@@ -265,12 +265,17 @@ const filteredCompanySummary = computed(() => {
         if (toDate && tDate > toDate) return false;
         return true;
       });
-      
+
+      // Filter transactions by servedBy
+      if (servedBy.value) {
+        filteredTransactions = filteredTransactions.filter((t) => t.servedBy === servedBy.value);
+      }
+
       // Recalculate amount owed based on filtered transactions
       const amountOwed = filteredTransactions
         .filter((t) => !t.paid)
         .reduce((sum, t) => sum + (Number(t.cost) || 0), 0);
-      
+
       return {
         ...c,
         transactions: filteredTransactions,
@@ -278,7 +283,7 @@ const filteredCompanySummary = computed(() => {
       };
     }).filter(c => c.transactions.length > 0); // Remove companies with no transactions in range
   }
-  
+
   return list;
 });
 
@@ -297,6 +302,7 @@ const detailTransactionColumns = computed(() => [
   { key: 'couponNumber', label: 'Coupon', width: '1' },
   { key: 'photoURL', label: 'Photo', width: '0.8' },
   { key: 'createdAt', label: 'Date', width: '1.2' },
+  { key: 'servedBy', label: 'Served By', width: '1.2' },
   { key: 'paid', label: 'Status', width: '0.8' },
 ]);
 
@@ -333,6 +339,7 @@ function exportCSV(rows, filename) {
     "CouponNumber",
     "PhotoURL",
     "CreatedAt",
+    "ServedBy",
     "Paid",
   ];
   const csvRows = rows.map((r) =>
@@ -348,6 +355,7 @@ function exportCSV(rows, filename) {
       `"${r.couponNumber || ''}"`,
       `"${r.photoURL || ''}"`,
       `"${r.createdAt || ''}"`,
+      `"${r.servedBy || ''}"`,
       r.paid ? "Paid" : "Unpaid",
     ].join(",")
   );
@@ -565,36 +573,36 @@ function exportCSV(rows, filename) {
   .filters-card {
     padding: 1.25rem;
   }
-  
+
   .filters-header {
     margin-bottom: 1.25rem;
   }
-  
+
   .filters-title {
     font-size: 1.125rem;
   }
-  
+
   .filters-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
     margin-bottom: 1.25rem;
   }
-  
+
   .date-fields {
     grid-template-columns: 1fr;
   }
-  
+
   .filter-field input,
   .filter-field select {
     height: 3rem;
     font-size: 1rem;
   }
-  
+
   .filters-actions {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .filter-btn {
     width: 100%;
     min-width: unset;
@@ -608,7 +616,7 @@ function exportCSV(rows, filename) {
   .filters-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .date-fields {
     grid-template-columns: 1fr 1fr;
   }

@@ -16,7 +16,8 @@
 
           <!-- Dropdown Menu -->
           <div v-if="showDropdown" class="dropdown-menu">
-            <button v-if="userRole === 'admin'" class="dropdown-item admin-item" @click="navigateToAdmin">
+            <button v-if="userRole === 'admin' || userRole === 'manager'" class="dropdown-item admin-item"
+              @click="navigateToAdmin">
               <Cog6ToothIcon class="dropdown-icon" />
               Admin Dashboard
             </button>

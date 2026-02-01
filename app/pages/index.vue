@@ -11,7 +11,7 @@
         <div class="summary-card">
           <div class="todays-sales">
             <div class="sales-label">
-              <h2>Today's Sales</h2>
+              <h2>{{ summaryTitle }}</h2>
             </div>
             <div class="sales-amount">
               <p class="amount-value"> {{ todaySummary.amount }}</p>
@@ -31,6 +31,21 @@
               </div>
               <p class="number">{{ todaySummary.vehicles }}</p>
               <p class="label">Vehicles</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Filter -->
+        <div class="date-filter-section">
+          <div class="date-filter-header">
+            <label>Filter by Date</label>
+          </div>
+          <div class="date-filter-controls">
+            <input type="date" v-model="selectedDate" class="date-input" />
+            <div class="date-quick-buttons">
+              <button @click="setToday" class="quick-btn" :class="{ active: isToday }">Today</button>
+              <button @click="setYesterday" class="quick-btn">Yesterday</button>
+              <button @click="clearDateFilter" class="quick-btn">All Time</button>
             </div>
           </div>
         </div>
@@ -92,7 +107,7 @@
       </div>
 
       <!-- Floating Add Button -->
- 
+
 
 
       <button class="floating-btn" @click="showForm = true">+</button>
@@ -114,6 +129,45 @@
               <p class="loading-text">Loading...</p>
             </div>
             <form v-else @submit.prevent="submitEntry">
+              <!-- Driver Search (Quick Lookup) -->
+              <div class="form-group">
+                <label>Search Driver (Optional - Quick Fill)</label>
+                <div class="search-input-wrapper">
+                  <MagnifyingGlassIcon class="search-input-icon" />
+                  <input type="text" v-model="driverSearchQuery" placeholder="Search by name, phone, or car number..."
+                    :disabled="isSubmitting" @input="onDriverSearchInput" @focus="showDriverSearchResults = true"
+                    class="search-input" />
+                  <button v-if="driverSearchQuery" type="button" @click="clearDriverSearch" class="clear-search-btn"
+                    :disabled="isSubmitting">
+                    <XMarkIcon class="clear-icon" />
+                  </button>
+                </div>
+
+                <!-- Search Results Dropdown -->
+                <div v-if="showDriverSearchResults && driverSearchQuery && filteredAllDrivers.length > 0"
+                  class="search-results">
+                  <div v-for="driver in filteredAllDrivers.slice(0, 5)" :key="driver.id"
+                    @click="selectDriverFromSearch(driver)" class="search-result-item">
+                    <div class="search-result-main">
+                      <div class="search-result-name">{{ driver.displayName || driver.email }}</div>
+                      <div class="search-result-details">
+                        <span v-if="driver.carNumber" class="search-result-tag">🚗 {{ driver.carNumber }}</span>
+                        <span v-if="driver.contact || driver.phone" class="search-result-tag">📱 {{ driver.contact ||
+                          driver.phone }}</span>
+                      </div>
+                    </div>
+                    <div class="search-result-company">{{ driver.companyName || 'Unknown Company' }}</div>
+                  </div>
+                </div>
+                <div v-else-if="showDriverSearchResults && driverSearchQuery && filteredAllDrivers.length === 0"
+                  class="search-results-empty">
+                  No drivers found matching "{{ driverSearchQuery }}"
+                </div>
+                <small style="display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #6b7280;">
+                  Search across all drivers to quickly fill the form
+                </small>
+              </div>
+
               <div class="form-group">
                 <label>Select Company</label>
                 <select v-model="form.company" required :disabled="isSubmitting" @change="onCompanyChange">
@@ -171,17 +225,31 @@
               <div class="form-group">
                 <label>Quantity</label>
                 <input v-model.number="form.quantity" type="number" step="0.1" min="0.1" required
-                  :disabled="isSubmitting"
+                  :disabled="isSubmitting" @input="onQuantityChange"
                   :placeholder="form.selectedItem ? `Enter quantity in ${form.selectedItem.unit}` : 'Select item first'" />
-                <small v-if="form.selectedItem"
-                  style="display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #6b7280;">Unit: {{
-                    form.selectedItem.unit }}</small>
+                <small v-if="form.selectedItem && form.selectedItem.price"
+                  style="display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #6b7280;">
+                  Unit: {{ form.selectedItem.unit }} • Price: GHS {{ form.selectedItem.price.toFixed(2) }}/{{
+                    form.selectedItem.unit }}
+                </small>
+                <small v-else-if="form.selectedItem"
+                  style="display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #6b7280;">
+                  Unit: {{ form.selectedItem.unit }}
+                </small>
               </div>
 
               <div class="form-group">
                 <label>Cost (GHS)</label>
                 <input v-model.number="form.cost" type="number" step="0.01" min="0.01" required :disabled="isSubmitting"
-                  placeholder="Enter cost in GHS" />
+                  @input="onCostChange" placeholder="Enter cost in GHS" />
+                <small v-if="form.selectedItem && form.selectedItem.price && form.quantity"
+                  style="display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #10b981;">
+                  💡 Auto-calculated from quantity × unit price
+                </small>
+                <small v-else-if="form.selectedItem && !form.selectedItem.price"
+                  style="display: block; margin-top: 0.25rem; font-size: 0.75rem; color: #f59e0b;">
+                  No fixed price set for this item - enter cost manually
+                </small>
               </div>
 
               <div class="form-group">
@@ -238,6 +306,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useDrivers } from '~/composables/useDrivers'
 import { usePhoneValidation } from '~/composables/usePhoneValidation'
 import { useFirebaseErrors } from '~/composables/useFirebaseErrors'
+import { useImageCompression } from '~/composables/useImageCompression'
 import ResponsiveTable from '~/components/ResponsiveTable.vue'
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { getStorage } from 'firebase/storage'
@@ -262,6 +331,7 @@ const { user, userRole } = useAuth()
 const { getCompanyDrivers } = useDrivers()
 const { validateGhanaPhone, formatForStorage } = usePhoneValidation()
 const { getErrorMessage } = useFirebaseErrors()
+const { compressImage } = useImageCompression()
 
 /* shared state */
 const companies = ref([])
@@ -278,6 +348,13 @@ const selectedDriver = ref('')
 const photoInput = ref(null)
 const showForm = ref(false)
 const companyDrivers = ref([])
+const allDrivers = ref([])
+const driverSearchQuery = ref('')
+const showDriverSearchResults = ref(false)
+const isCalculating = ref(false) // Prevent circular calculation updates
+
+// Date filter - default to today
+const selectedDate = ref(new Date().toISOString().split('T')[0])
 
 const availableDrivers = computed(() => {
   return companyDrivers.value.map(driver => ({
@@ -304,13 +381,33 @@ onMounted(async () => {
     companies.value = await getCompanies()
     items.value = await getItems()
     transactions.value = await getTransactions()
+    // Fetch all drivers for search functionality
+    await loadAllDrivers()
   } catch (err) {
     console.error(err)
     error(getErrorMessage(err))
   } finally {
     isLoading.value = false
   }
+
+  // Add click event listener to close search results on outside click
+  document.addEventListener('click', handleClickOutside)
 })
+
+onUnmounted(() => {
+  // Clean up event listener
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// Handle click outside to close search results
+function handleClickOutside(event) {
+  const searchWrapper = event.target.closest('.search-input-wrapper')
+  const searchResults = event.target.closest('.search-results')
+
+  if (!searchWrapper && !searchResults) {
+    showDriverSearchResults.value = false
+  }
+}
 
 const form = reactive({
   company: '',
@@ -340,6 +437,75 @@ watch(selectedDriver, (driver) => {
   }
 })
 
+// Load all drivers for search
+async function loadAllDrivers() {
+  try {
+    const driversData = []
+    for (const company of companies.value) {
+      const drivers = await getCompanyDrivers(company.id)
+      // Add company name to each driver for display
+      const driversWithCompany = drivers.map(driver => ({
+        ...driver,
+        companyName: company.name,
+        companyObj: company
+      }))
+      driversData.push(...driversWithCompany)
+    }
+    allDrivers.value = driversData
+  } catch (err) {
+    console.error('Failed to load all drivers:', err)
+    allDrivers.value = []
+  }
+}
+
+// Filter drivers based on search query
+const filteredAllDrivers = computed(() => {
+  if (!driverSearchQuery.value) return []
+
+  const query = driverSearchQuery.value.toLowerCase().trim()
+  return allDrivers.value.filter(driver => {
+    const name = (driver.displayName || driver.email || '').toLowerCase()
+    const phone = (driver.contact || driver.phone || '').toLowerCase()
+    const carNumber = (driver.carNumber || '').toLowerCase()
+
+    return name.includes(query) ||
+      phone.includes(query) ||
+      carNumber.includes(query)
+  })
+})
+
+// Handle driver search input
+function onDriverSearchInput() {
+  showDriverSearchResults.value = true
+}
+
+// Clear driver search
+function clearDriverSearch() {
+  driverSearchQuery.value = ''
+  showDriverSearchResults.value = false
+}
+
+// Select driver from search results
+async function selectDriverFromSearch(driver) {
+  // Set the company
+  form.company = driver.companyObj
+
+  // Load drivers for this company
+  await onCompanyChange()
+
+  // Find and select the driver
+  const matchingDriver = availableDrivers.value.find(d => d.uid === driver.id)
+  if (matchingDriver) {
+    selectedDriver.value = matchingDriver
+  }
+
+  // Close search results
+  showDriverSearchResults.value = false
+  driverSearchQuery.value = ''
+
+  success(`Selected ${driver.displayName || driver.email} from ${driver.companyName}`)
+}
+
 async function onCompanyChange() {
   // Reset driver selection when company changes
   selectedDriver.value = '';
@@ -347,7 +513,7 @@ async function onCompanyChange() {
   form.driverName = '';
   form.phone = '';
   form.carNumber = '';
-  
+
   // Load drivers for the selected company
   if (form.company && form.company.id) {
     try {
@@ -361,6 +527,52 @@ async function onCompanyChange() {
   }
 }
 
+// Handle quantity change - calculate cost if item has price
+function onQuantityChange() {
+  if (isCalculating.value) return
+
+  if (form.selectedItem && form.selectedItem.price && form.quantity) {
+    isCalculating.value = true
+    // Calculate cost = quantity × unit price
+    form.cost = Number((form.quantity * form.selectedItem.price).toFixed(2))
+    nextTick(() => {
+      isCalculating.value = false
+    })
+  }
+}
+
+// Handle cost change - calculate quantity if item has price
+function onCostChange() {
+  if (isCalculating.value) return
+
+  if (form.selectedItem && form.selectedItem.price && form.cost) {
+    isCalculating.value = true
+    // Calculate quantity = cost ÷ unit price
+    form.quantity = Number((form.cost / form.selectedItem.price).toFixed(2))
+    nextTick(() => {
+      isCalculating.value = false
+    })
+  }
+}
+
+// Watch for item selection changes
+watch(() => form.selectedItem, (newItem, oldItem) => {
+  // If item changes and has a price, recalculate based on existing quantity or cost
+  if (newItem && newItem.price) {
+    if (form.quantity && !form.cost) {
+      // Has quantity but no cost - calculate cost
+      onQuantityChange()
+    } else if (form.cost && !form.quantity) {
+      // Has cost but no quantity - calculate quantity
+      onCostChange()
+    } else if (form.quantity) {
+      // Has both - recalculate cost based on new item price
+      onQuantityChange()
+    }
+  }
+})
+
+
 // Photo upload handler
 async function handlePhotoUpload(event) {
   const file = event.target.files?.[0]
@@ -372,24 +584,45 @@ async function handlePhotoUpload(event) {
     return
   }
 
-  // Validate file size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    error('Image size must be less than 5MB')
+  // Validate file size (max 10MB for original)
+  if (file.size > 10 * 1024 * 1024) {
+    error('Image size must be less than 10MB')
     return
   }
 
   isUploadingPhoto.value = true
   try {
+    // Compress the image
+    const { file: compressedFile, originalSize, compressedSize, quality } = await compressImage(file, 200)
+
+    const originalSizeKB = (originalSize / 1024).toFixed(2)
+    const compressedSizeKB = (compressedSize / 1024).toFixed(2)
+    const reduction = (((originalSize - compressedSize) / originalSize) * 100).toFixed(1)
+
+    console.log(`Image compressed: ${originalSizeKB}KB → ${compressedSizeKB}KB (${reduction}% reduction, quality: ${quality.toFixed(1)})`)
+
+    // Create a local preview URL from the compressed file
+    const previewURL = URL.createObjectURL(compressedFile)
+    form.photoURL = previewURL
+
+    // Show immediate preview with compression info
+    success(`Image compressed: ${originalSizeKB}KB → ${compressedSizeKB}KB`)
+
+    // Upload to Firebase in the background
     const storage = getStorage()
     const timestamp = Date.now()
     const filename = `transaction-photos/${timestamp}-${file.name}`
     const fileRef = storageRef(storage, filename)
 
-    await uploadBytes(fileRef, file)
+    await uploadBytes(fileRef, compressedFile)
     const downloadURL = await getDownloadURL(fileRef)
 
+    // Replace preview URL with Firebase URL
+    // Clean up the blob URL to free memory
+    URL.revokeObjectURL(previewURL)
     form.photoURL = downloadURL
-    success('Photo uploaded successfully!')
+
+    success(`Photo uploaded successfully!`)
   } catch (err) {
     console.error('Upload error:', err)
     error(getErrorMessage(err))
@@ -399,6 +632,10 @@ async function handlePhotoUpload(event) {
 }
 
 function removePhoto() {
+  // Clean up blob URL if it exists
+  if (form.photoURL && form.photoURL.startsWith('blob:')) {
+    URL.revokeObjectURL(form.photoURL)
+  }
   form.photoURL = ''
   if (photoInput.value) {
     photoInput.value.value = ''
@@ -419,14 +656,14 @@ const validateForm = () => {
     error('Please enter phone number')
     return false
   }
-  
+
   // Validate phone using Ghana phone validation
   const phoneValidation = validateGhanaPhone(form.phone)
   if (!phoneValidation.valid) {
     error(phoneValidation.message)
     return false
   }
-  
+
   if (!form.selectedItem) {
     error('Please select an item')
     return false
@@ -449,7 +686,7 @@ async function submitEntry() {
   try {
     // Format phone number for storage
     const formattedPhone = formatForStorage(form.phone)
-    
+
     // Calculate points earned: item points × quantity
     const pointsEarned = (form.selectedItem.points || 0) * form.quantity
 
@@ -472,7 +709,7 @@ async function submitEntry() {
       servedBy: user.value?.displayName || user.value?.email || 'Attendant',
       servedById: user.value?.uid || ''
     }
-    
+
     console.log('Creating transaction with driverId:', transactionData.driverId)
 
     // Submit transaction
@@ -493,6 +730,11 @@ async function submitEntry() {
 }
 
 function clearForm() {
+  // Clean up blob URL if it exists
+  if (form.photoURL && form.photoURL.startsWith('blob:')) {
+    URL.revokeObjectURL(form.photoURL)
+  }
+
   form.company = ''
   form.driverId = ''
   form.driverName = ''
@@ -504,6 +746,8 @@ function clearForm() {
   form.couponNumber = ''
   form.photoURL = ''
   selectedDriver.value = ''
+  driverSearchQuery.value = ''
+  showDriverSearchResults.value = false
   if (photoInput.value) {
     photoInput.value.value = ''
   }
@@ -524,17 +768,72 @@ function navigateToAdmin() {
   navigateTo('/admin/reports')
 }
 
-const filteredTransactions = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return transactions.value
+// Date filter helper functions
+const isToday = computed(() => {
+  const today = new Date().toISOString().split('T')[0]
+  return selectedDate.value === today
+})
+
+function setToday() {
+  selectedDate.value = new Date().toISOString().split('T')[0]
+}
+
+function setYesterday() {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  selectedDate.value = yesterday.toISOString().split('T')[0]
+}
+
+function clearDateFilter() {
+  selectedDate.value = ''
+}
+
+// Dynamic summary title
+const summaryTitle = computed(() => {
+  if (!selectedDate.value) {
+    return "All Time Sales"
   }
-  const query = searchQuery.value.toLowerCase()
-  return transactions.value.filter(t =>
-    t.company?.toLowerCase().includes(query) ||
-    t.driverName?.toLowerCase().includes(query) ||
-    t.phone?.includes(query) ||
-    t.carNumber?.toLowerCase().includes(query)
-  )
+
+  const today = new Date().toISOString().split('T')[0]
+  if (selectedDate.value === today) {
+    return "Today's Sales"
+  }
+
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (selectedDate.value === yesterday.toISOString().split('T')[0]) {
+    return "Yesterday's Sales"
+  }
+
+  // Format selected date
+  const date = new Date(selectedDate.value + 'T00:00:00')
+  return `Sales for ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+})
+
+const filteredTransactions = computed(() => {
+  let filtered = transactions.value
+
+  // Filter by date if selected
+  if (selectedDate.value) {
+    const selectedDateString = new Date(selectedDate.value + 'T00:00:00').toDateString()
+    filtered = filtered.filter(t => {
+      const transactionDate = new Date(t.createdAt).toDateString()
+      return transactionDate === selectedDateString
+    })
+  }
+
+  // Filter by search query
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(t =>
+      t.company?.toLowerCase().includes(query) ||
+      t.driverName?.toLowerCase().includes(query) ||
+      t.phone?.includes(query) ||
+      t.carNumber?.toLowerCase().includes(query)
+    )
+  }
+
+  return filtered
 })
 
 const tableColumns = computed(() => [
@@ -548,16 +847,20 @@ const tableColumns = computed(() => [
 ])
 
 const todaySummary = computed(() => {
-  const today = new Date().toDateString()
-  const todayTransactions = transactions.value.filter(t => {
+  // Use selected date or today
+  const targetDate = selectedDate.value
+    ? new Date(selectedDate.value + 'T00:00:00').toDateString()
+    : new Date().toDateString()
+
+  const dateTransactions = transactions.value.filter(t => {
     const transactionDate = new Date(t.createdAt).toDateString()
-    return transactionDate === today
+    return transactionDate === targetDate
   })
 
   return {
-    companies: new Set(todayTransactions.map(t => t.company)).size,
-    vehicles: todayTransactions.length,
-    amount: todayTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2)
+    companies: new Set(dateTransactions.map(t => t.company)).size,
+    vehicles: dateTransactions.length,
+    amount: dateTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2)
   }
 })
 
@@ -765,6 +1068,100 @@ const todaySummary = computed(() => {
 
 .summary-info {
   background: linear-gradient(135deg, #FFC800 0%, #DD1D21 100%);
+}
+
+/* Date Filter Section */
+.date-filter-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f3f4f6;
+}
+
+.date-filter-header label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.date-filter-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  outline: none;
+  font-size: 0.9375rem;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.date-input:focus {
+  border-color: #FFC800;
+  box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+}
+
+.date-quick-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quick-btn {
+  flex: 1;
+  min-width: fit-content;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.quick-btn.active {
+  background: linear-gradient(135deg, #FFC800, #DD1D21);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 4px rgba(221, 29, 33, 0.3);
+}
+
+@media (min-width: 640px) {
+  .date-filter-controls {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .date-input {
+    flex: 1;
+    max-width: 300px;
+  }
+
+  .date-quick-buttons {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .quick-btn {
+    flex: 0;
+  }
 }
 
 .search-bar {
@@ -1153,6 +1550,156 @@ const todaySummary = computed(() => {
 
 .modal-content .form-group {
   margin-bottom: 1.25rem;
+  position: relative;
+}
+
+/* Driver Search Styles */
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-icon {
+  position: absolute;
+  left: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 3rem 0.875rem 3rem !important;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  outline: none;
+  font-size: 0.9375rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  border-color: #FFC800;
+  box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 0.5rem;
+  padding: 0.375rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.clear-search-btn:hover {
+  background: #e5e7eb;
+}
+
+.clear-icon {
+  width: 1rem;
+  height: 1rem;
+  color: #6b7280;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 20rem;
+  overflow-y: auto;
+  z-index: 50;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-result-item {
+  padding: 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: #f9fafb;
+}
+
+.search-result-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-result-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.9375rem;
+}
+
+.search-result-details {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.search-result-tag {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.search-result-company {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  margin-top: 0.375rem;
+  font-style: italic;
+}
+
+.search-results-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
 }
 
 .modal-content label {
