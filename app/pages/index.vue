@@ -224,7 +224,7 @@
 
               <div class="form-group">
                 <label>Quantity</label>
-                <input v-model.number="form.quantity" type="number" step="0.1" min="0.1" required
+                <input v-model.number="form.quantity" type="number" step="0.001" min="0.001" required
                   :disabled="isSubmitting" @input="onQuantityChange"
                   :placeholder="form.selectedItem ? `Enter quantity in ${form.selectedItem.unit}` : 'Select item first'" />
                 <small v-if="form.selectedItem && form.selectedItem.price"
