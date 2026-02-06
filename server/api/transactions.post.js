@@ -21,7 +21,7 @@ const db = getFirestore(app)
 // Nalo Solutions Configuration
 const NALO_USERNAME = process.env.NALO_USERNAME || 'Rigelis'
 const NALO_PASSWORD = process.env.NALO_PASSWORD || 'Maestro1985@'
-const NALO_SOURCE = process.env.NALO_SOURCE || 'RigelOS'
+const NALO_SOURCE = process.env.NALO_SOURCE || 'KrapaShell'
 
 /**
  * Format phone number to international format

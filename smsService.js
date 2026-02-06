@@ -22,7 +22,7 @@ if (globalThis.fetch) {
 // Nalo Solutions Configuration (from environment)
 const NALO_USERNAME = process.env.NALO_USERNAME || 'Rigelis';
 const NALO_PASSWORD = process.env.NALO_PASSWORD || 'Maestro1985@';
-const NALO_SOURCE = process.env.NALO_SOURCE || 'RigelOS';
+const NALO_SOURCE = process.env.NALO_SOURCE || 'KrapaShell';
 
 // MNotify Configuration (from environment)
 const MNOTIFY_API_KEY = process.env.MNOTIFY_API_KEY || 'RXttUY1ZnvmlhGb1ovXx8iV1h';
@@ -56,7 +56,7 @@ const getCompanySenderID = async (companyId, provider = null) => {
       }
       return provider === 'nalo' ? NALO_SOURCE : MNOTIFY_SENDER_ID;
     }
-    
+
     // Get the provider if not specified
     if (!provider) {
       provider = await getActiveProvider();
@@ -64,12 +64,12 @@ const getCompanySenderID = async (companyId, provider = null) => {
 
     // Try to get company-specific sender ID from database
     const senderID = await companySmsSettingsDB.getCompanySenderID(companyId);
-    
+
     // Return company sender ID if exists, otherwise use default based on provider
     if (senderID) {
       return senderID;
     }
-    
+
     // Fallback to default based on provider
     return provider === 'nalo' ? NALO_SOURCE : MNOTIFY_SENDER_ID;
   } catch (error) {
@@ -100,12 +100,12 @@ const sendViaNalo = async (phoneNumber, message, senderId = null) => {
   try {
     console.log('Nalo SMS message:', message);
     const formattedPhone = formatPhoneNumber(phoneNumber);
-    
+
     if (!formattedPhone) {
       throw new Error('Invalid phone number format');
     }
 
-    // Use provided sender ID or default to NALO_SOURCE (RigelOS)
+    // Use provided sender ID or default to NALO_SOURCE (KrapaShell)
     const source = senderId || NALO_SOURCE;
 
     logger.info('Sending SMS via Nalo to:', formattedPhone, 'with sender ID:', source);
@@ -130,14 +130,14 @@ const sendViaNalo = async (phoneNumber, message, senderId = null) => {
 
     const responseData = await response.text();
     console.log('🚀 Nalo SMS Provider Response:', responseData);
-    
+
     // Check for Nalo error codes in the response
     // Nalo returns errors in format: "1709:User validation failed"
     // Success format: "1000:Success" or just a message ID
     if (responseData.includes(':')) {
       const [code, message] = responseData.split(':');
       const errorCode = parseInt(code);
-      
+
       // Common Nalo error codes:
       // 1709: User validation failed
       // 1710: Invalid credentials
@@ -149,7 +149,7 @@ const sendViaNalo = async (phoneNumber, message, senderId = null) => {
         throw new Error(`Nalo SMS error (${errorCode}): ${message}`);
       }
     }
-    
+
     logger.info('SMS sent successfully via Nalo:', responseData);
 
     return {
@@ -171,7 +171,7 @@ const sendViaNalo = async (phoneNumber, message, senderId = null) => {
 const sendViaMNotify = async (phoneNumber, message, senderId = null) => {
   try {
     const formattedPhone = formatPhoneNumber(phoneNumber);
-    
+
     if (!formattedPhone) {
       throw new Error('Invalid phone number format');
     }
@@ -179,7 +179,7 @@ const sendViaMNotify = async (phoneNumber, message, senderId = null) => {
     logger.info('Sending SMS via MNotify to:', formattedPhone);
 
     const url = `https://api.mnotify.com/api/sms/quick?key=${MNOTIFY_API_KEY}`;
-    
+
     const requestBody = {
       recipient: [formattedPhone],
       sender: senderId || MNOTIFY_SENDER_ID,
@@ -210,9 +210,9 @@ const sendViaMNotify = async (phoneNumber, message, senderId = null) => {
     logger.info('SMS sent successfully via MNotify:', responseData);
 
     // Check MNotify response format
-    const isSuccess = responseData.status === 'success' || 
-                      responseData.code === 200 || 
-                      responseData.code === '200';
+    const isSuccess = responseData.status === 'success' ||
+      responseData.code === 200 ||
+      responseData.code === '200';
 
     if (!isSuccess) {
       const errorMsg = responseData.message || responseData.error || 'Failed to send SMS via MNotify';
@@ -242,8 +242,8 @@ const sendViaMNotify = async (phoneNumber, message, senderId = null) => {
  * @param {number} companyId - Company ID (optional, to get company-specific sender ID)
  */
 const sendSMS = async (phoneNumber, message, provider = null, senderId = null, companyId = null) => {
-  
-try {
+
+  try {
     // If provider not specified, get from database
     if (!provider) {
       provider = await getActiveProvider();
@@ -310,7 +310,7 @@ const sendOrderNotificationToCompany = async (whatsappNumber, orderDetails, prov
  */
 const sendOrderStatusUpdate = async (phoneNumber, orderDetails, provider = null, companyId = null) => {
   const { order_id, status, company_name } = orderDetails;
-  
+
   const statusMessages = {
     confirmed: `Your order ${order_id} has been confirmed by ${company_name}.`,
     shipped: `Your order ${order_id} has been shipped! It's on the way.`,
@@ -353,10 +353,10 @@ const sendBulkSMS = async (recipients, provider = null, senderId = null, company
 
   for (let i = 0; i < recipients.length; i++) {
     const recipient = recipients[i];
-    
+
     try {
       const result = await sendSMS(recipient.phone, recipient.message, provider, senderId, companyId);
-      
+
       results.sent++;
       results.details.push({
         phone: recipient.phone,
@@ -364,7 +364,7 @@ const sendBulkSMS = async (recipients, provider = null, senderId = null, company
         messageId: result.messageId,
         recipientId: recipient.id
       });
-      
+
       if (onProgress) {
         onProgress({
           current: i + 1,
@@ -373,12 +373,12 @@ const sendBulkSMS = async (recipients, provider = null, senderId = null, company
           recipientId: recipient.id
         });
       }
-      
+
       // Rate limiting: delay between messages (adjust as needed)
       if (i < recipients.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
       }
-      
+
     } catch (error) {
       results.failed++;
       results.details.push({
@@ -387,7 +387,7 @@ const sendBulkSMS = async (recipients, provider = null, senderId = null, company
         error: error.message,
         recipientId: recipient.id
       });
-      
+
       if (onProgress) {
         onProgress({
           current: i + 1,
@@ -397,7 +397,7 @@ const sendBulkSMS = async (recipients, provider = null, senderId = null, company
           recipientId: recipient.id
         });
       }
-      
+
       logger.error(`Failed to send SMS to ${recipient.phone}:`, error);
     }
   }

@@ -6,42 +6,42 @@ import { getFirestore } from 'firebase/firestore'
 const app = getApps().length
   ? getApp()
   : initializeApp({
-      apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
-      measurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    })
+    apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  })
 
 const db = getFirestore(app)
 
 // Nalo Solutions Configuration
 const NALO_USERNAME = process.env.NALO_USERNAME || 'Rigelis'
 const NALO_PASSWORD = process.env.NALO_PASSWORD || 'Maestro1985@'
-const NALO_SOURCE = process.env.NALO_SOURCE || 'RigelOS'
+const NALO_SOURCE = process.env.NALO_SOURCE || 'KrapaShell'
 
 /**
  * Format phone number to international format (233XXXXXXXXX)
  */
 function formatPhoneNumber(phone) {
   if (!phone) return null
-  
+
   let cleaned = phone.replace(/\D/g, '')
-  
+
   if (cleaned.startsWith('0')) {
     cleaned = '233' + cleaned.substring(1)
   }
-  
+
   if (!cleaned.startsWith('233')) {
     cleaned = '233' + cleaned
   }
-  
+
   if (cleaned.length !== 12) {
     return null
   }
-  
+
   return cleaned
 }
 
@@ -51,7 +51,7 @@ function formatPhoneNumber(phone) {
 async function sendViaNalo(phoneNumber, message) {
   try {
     const formattedPhone = formatPhoneNumber(phoneNumber)
-    
+
     if (!formattedPhone) {
       throw new Error('Invalid phone number format')
     }
@@ -71,11 +71,11 @@ async function sendViaNalo(phoneNumber, message) {
     }
 
     const responseData = await response.text()
-    
+
     if (responseData.includes(':')) {
       const [code] = responseData.split(':')
       const errorCode = parseInt(code)
-      
+
       if (errorCode !== 1000 && errorCode >= 1001) {
         throw new Error(`Nalo SMS error (${errorCode})`)
       }
