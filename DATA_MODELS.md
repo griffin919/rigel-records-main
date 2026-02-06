@@ -254,7 +254,7 @@ The SMS service automatically converts local format to international format befo
 ### SMS Configuration (Nalo Solutions):
 - `NALO_USERNAME`: Nalo API username (default: 'Rigelis')
 - `NALO_PASSWORD`: Nalo API password
-- `NALO_SOURCE`: SMS sender ID (default: 'RigelOS')
+- `NALO_SOURCE`: SMS sender ID (default: 'KrapaShell')
 
 ### Firebase Configuration:
 - `NUXT_PUBLIC_FIREBASE_API_KEY`

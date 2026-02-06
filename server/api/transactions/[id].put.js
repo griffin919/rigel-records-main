@@ -6,21 +6,21 @@ import { readBody } from 'h3'
 const app = getApps().length
   ? getApp()
   : initializeApp({
-      apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
-      measurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    })
+    apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  })
 
 const db = getFirestore(app)
 
 // Nalo Solutions Configuration
 const NALO_USERNAME = process.env.NALO_USERNAME || 'Rigelis'
 const NALO_PASSWORD = process.env.NALO_PASSWORD || 'Maestro1985@'
-const NALO_SOURCE = process.env.NALO_SOURCE || 'RigelOS'
+const NALO_SOURCE = process.env.NALO_SOURCE || 'KrapaShell'
 
 /**
  * Format phone number to international format
@@ -52,13 +52,13 @@ async function sendViaNalo(phoneNumber, message) {
 
     const response = await fetch(url, { method: 'GET' })
     if (!response.ok) return null
-    
+
     const responseData = await response.text()
     if (responseData.includes(':')) {
       const [code] = responseData.split(':')
       if (parseInt(code) !== 1000 && parseInt(code) >= 1001) return null
     }
-    
+
     return true
   } catch (error) {
     console.error('SMS send error:', error)
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const docRef = doc(db, "transactions", id)
-    
+
     // Check if document exists
     const docSnap = await getDoc(docRef)
     if (!docSnap.exists()) {
@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
     if (body.paid === true && docSnap.data().phone) {
       const transaction = { id, ...docSnap.data(), ...updates }
       const paymentMessage = `Payment Confirmed!\nDriver: ${transaction.driverName}\nAmount: GHS ${parseFloat(transaction.cost).toFixed(2)}\nItem: ${transaction.itemName}\nQty: ${transaction.quantity || transaction.fuelQuantity}\nStatus: PAID\nThank you!`
-      
+
       sendViaNalo(transaction.phone, paymentMessage).catch(err =>
         console.error('Failed to send payment confirmation SMS:', err)
       )
