@@ -7,14 +7,14 @@ import { readBody } from 'h3'
 const app = getApps().length
   ? getApp()
   : initializeApp({
-      apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
-      measurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    })
+    apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NUXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  })
 
 const db = getFirestore(app)
 
@@ -53,13 +53,13 @@ async function sendViaNalo(phoneNumber, message) {
 
     const response = await fetch(url, { method: 'GET' })
     if (!response.ok) return null
-    
+
     const responseData = await response.text()
     if (responseData.includes(':')) {
       const [code] = responseData.split(':')
       if (parseInt(code) !== 1000 && parseInt(code) >= 1001) return null
     }
-    
+
     return true
   } catch (error) {
     console.error('SMS send error:', error)
@@ -74,7 +74,13 @@ async function sendTransactionNotifications(transaction) {
   try {
     // Send to driver if phone number exists
     if (transaction.phone) {
-      const driverMessage = `Transaction Recorded!\nItem: ${transaction.itemName}\nQty: ${transaction.quantity} ${transaction.itemUnit || 'L'}\nAmount: GHS ${parseFloat(transaction.cost).toFixed(2)}\nPoints: ${transaction.pointsEarned || 0}\nCompany: ${transaction.company}`
+      const cost = parseFloat(transaction.cost).toFixed(2)
+      const itemName = transaction.itemName || 'Fuel'
+      const carNumber = transaction.carNumber || 'N/A'
+      const couponNumber = transaction.couponNumber || 'N/A'
+      const points = transaction.pointsEarned || 0
+
+      const driverMessage = `Dear Client, thank you for your purchase of GHS ${cost} of ${itemName} at Ejisu-Krapa Shell.\nCar No: ${carNumber}.\nCoupon No: ${couponNumber}.\nLoyalty points: ${points}\nSafe journey!\n#0240431219`
       await sendViaNalo(transaction.phone, driverMessage)
     }
 
@@ -85,9 +91,9 @@ async function sendTransactionNotifications(transaction) {
         where('companyId', '==', transaction.companyId),
         where('role', '==', 'company-manager')
       )
-      
+
       const managersSnapshot = await getDocs(usersQuery)
-      
+
       for (const managerDoc of managersSnapshot.docs) {
         const manager = managerDoc.data()
         if (manager.phone) {
@@ -115,7 +121,7 @@ export default defineEventHandler(async (event) => {
 
     // Build document, use server timestamp for createdAt
     const doc = {
-      companyId: body.companyId,   
+      companyId: body.companyId,
       company: body.company,
       driverId: body.driverId || "",
       driverName: body.driverName,
@@ -137,13 +143,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const ref = await addDoc(collection(db, "transactions"), doc)
-    
+
     // Send SMS notifications asynchronously (don't wait for it)
     const transactionWithId = { id: ref.id, ...doc, createdAt: new Date().toISOString() }
-    sendTransactionNotifications(transactionWithId).catch(err => 
+    sendTransactionNotifications(transactionWithId).catch(err =>
       console.error('Failed to send SMS notifications:', err)
     )
-    
+
     // Return with ISO string for immediate display
     return transactionWithId
   } catch (error) {

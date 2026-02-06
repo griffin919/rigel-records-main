@@ -55,6 +55,16 @@
             <p class="stat-value"> {{ driverStats.pendingAmount }}</p>
           </div>
         </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <StarIcon class="icon" />
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Loyalty Points</p>
+            <p class="stat-value">{{ driverStats.totalPoints }}</p>
+          </div>
+        </div>
       </div>
 
       <!-- Recent Transactions -->
@@ -104,6 +114,7 @@ import {
   DocumentCheckIcon,
   CheckCircleIcon,
   ClockIcon,
+  StarIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
 
@@ -140,11 +151,15 @@ const driverStats = computed(() => {
   const paidTransactions = todayTransactions.filter(t => t.paid)
   const pendingTransactions = todayTransactions.filter(t => !t.paid)
 
+  // Calculate total points from all transactions
+  const totalPoints = driverTransactions.value.reduce((sum, t) => sum + (parseInt(t.pointsEarned) || 0), 0)
+
   return {
     transactions: todayTransactions.length,
     todayEarnings: todayTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2),
     paidAmount: paidTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2),
-    pendingAmount: pendingTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2)
+    pendingAmount: pendingTransactions.reduce((sum, t) => sum + parseFloat(t.cost || 0), 0).toFixed(2),
+    totalPoints: totalPoints
   }
 })
 
