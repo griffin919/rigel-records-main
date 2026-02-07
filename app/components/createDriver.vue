@@ -1,14 +1,10 @@
 <template>
   <div>
     <div class="container">
-      <h1>User Management</h1>
       <p class="subtitle">Manage existing drivers and add new drivers</p>
 
       <!-- Add New User Form -->
-      <CreateAccount 
-        title="Add New Driver" 
-        @account-created="handleAccountCreated"
-      />
+      <CreateAccount title="Add New Driver" @account-created="handleAccountCreated" />
 
       <!-- Users List -->
       <section class="card">
@@ -16,23 +12,16 @@
 
         <!-- Search Bar -->
         <div class="search-bar">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by email or name..."
-          />
+          <input v-model="searchQuery" type="text" placeholder="Search by email or name..." />
         </div>
 
         <!-- Users Table -->
-         <div v-if="loadingUsers" class="loading-state">
+        <div v-if="loadingUsers" class="loading-state">
           <span class="spinner"></span>
           <p>Loading users...</p>
         </div>
-        
-        <ResponsiveTable class="user-table"
-          v-else
-          :columns="userColumns"
-          :items="filteredUsers"
+
+        <ResponsiveTable class="user-table" v-else :columns="userColumns" :items="filteredUsers"
           empty-message="No users found">
           <template #cell-role="{ item }">
             <span class="badge" :class="item.role">{{ item.role }}</span>
@@ -41,12 +30,8 @@
             {{ formatDate(item.createdAt) }}
           </template>
           <template #row-actions="{ item }">
-            <button 
-              @click="handleStatus(item)" 
-              class="btn-delete"
-            :disabled="item.id==user.uid"
-            >
-            <!-- :disabled="item.id === currentUserId || item.role === 'admin' || !isAdmin"
+            <button @click="handleStatus(item)" class="btn-delete" :disabled="item.id == user.uid">
+              <!-- :disabled="item.id === currentUserId || item.role === 'admin' || !isAdmin"
               :title="item.role === 'admin' ? 'Cannot delete admin accounts' : !isAdmin ? 'Only admins can delete' : 'Delete user'" -->
               Delete
             </button>
@@ -110,14 +95,14 @@ const handleStatus = async (item) => {
       await updateDoc(userDoc, {
         active: false,
       });
-      
+
       // Log the action
       await logAction('user_deactivated', {
         targetUserId: item.id,
         targetUserEmail: item.email,
         targetUserRole: item.role
       });
-      
+
       success("User deactivated successfully");
       await fetchUsers();
     } catch (err) {
@@ -207,6 +192,7 @@ onMounted(() => {
 .container {
   width: 100%;
 }
+
 .subtitle {
   color: #6b7280;
   margin-top: -8px;

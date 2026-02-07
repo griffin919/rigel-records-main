@@ -3,35 +3,24 @@
     <div v-if="loadError" class="error-state">
       <strong>Error:</strong> {{ loadError }}
     </div>
-    
+
     <div v-if="isLoading" class="loading-state">
       <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
-    
+
     <template v-else>
       <!-- Header -->
-      <!-- <div class="mb-6">
-        <h1 class="text-3xl font-bold tracking-tight mb-2">Settings</h1>
-        <p class="text-muted-foreground">Manage users and inventory items</p>
-      </div> -->
+
 
       <!-- Tabs -->
       <div class="tabs-container">
         <div class="tabs">
-          <button 
-            class="tab" 
-            :class="{ active: activeTab === 'users' }"
-            @click="activeTab = 'users'"
-          >
+          <button class="tab" :class="{ active: activeTab === 'users' }" @click="activeTab = 'users'">
             <UsersIcon class="tab-icon" />
             User Management
           </button>
-          <button 
-            class="tab" 
-            :class="{ active: activeTab === 'items' }"
-            @click="activeTab = 'items'"
-          >
+          <button class="tab" :class="{ active: activeTab === 'items' }" @click="activeTab = 'items'">
             <CubeIcon class="tab-icon" />
             Inventory Items
           </button>
@@ -47,7 +36,7 @@
 
         <!-- Items Tab -->
         <div v-if="activeTab === 'items'" class="tab-panel">
-          
+
           <!-- Add/Edit Item Modal -->
           <div v-if="showItemModal" class="modal-backdrop" @click.self="closeItemModal">
             <div class="modal max-w-md">
@@ -75,7 +64,8 @@
                   </div>
                   <div class="field">
                     <label>Description - Optional</label>
-                    <textarea v-model="itemForm.description" rows="3" placeholder="Additional details about this item"></textarea>
+                    <textarea v-model="itemForm.description" rows="3"
+                      placeholder="Additional details about this item"></textarea>
                   </div>
                 </div>
                 <div class="flex gap-3 mt-6 justify-end">
@@ -107,9 +97,9 @@ import { useItems } from "~/composables/useItems";
 import { useAuth } from '~/composables/useAuth';
 import { useNotification } from "~/composables/useNotification";
 import Users from '~/components/users.vue';
-import { 
-  UsersIcon, 
-  CubeIcon, 
+import {
+  UsersIcon,
+  CubeIcon,
   MagnifyingGlassIcon,
   PlusIcon
 } from '@heroicons/vue/24/outline';
@@ -327,28 +317,28 @@ async function handleDeleteItem(item) {
 
 /* Search Bar */
 
-.search-bar { 
-  position: relative; 
-  margin-bottom: 1.5rem; 
+.search-bar {
+  position: relative;
+  margin-bottom: 1.5rem;
 }
 
-.search-bar .search-icon { 
-  position: absolute; 
-  left: 1rem; 
-  top: 50%; 
-  transform: translateY(-50%); 
+.search-bar .search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 1.25rem;
   height: 1.25rem;
-  color: #9ca3af; 
+  color: #9ca3af;
   pointer-events: none;
 }
 
-.search-bar input { 
-  width: 100%; 
-  padding: 0.875rem 1rem 0.875rem 3rem; 
-  border-radius: 1rem; 
-  border: 1px solid #e5e7eb; 
-  outline: none; 
+.search-bar input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  outline: none;
   font-size: 0.9375rem;
   background: white;
   transition: all 0.2s;
@@ -358,6 +348,7 @@ async function handleDeleteItem(item) {
   border-color: #FFC800;
   box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
 }
+
 /* Badges */
 .badge {
   display: inline-block;
@@ -417,7 +408,7 @@ async function handleDeleteItem(item) {
     margin-bottom: 1rem;
     padding: 1rem;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border: 1px solid #e5e7eb;
   }
 

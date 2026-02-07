@@ -38,13 +38,24 @@
         <!-- Date Filter -->
         <div class="date-filter-section">
           <div class="date-filter-header">
-            <label>Filter by Date</label>
+            <label>Filter by Date Range</label>
           </div>
           <div class="date-filter-controls">
-            <input type="date" v-model="selectedDate" class="date-input" />
+            <div class="date-range-inputs">
+              <div class="date-input-group">
+                <label class="date-label">From</label>
+                <input type="date" v-model="dateFrom" class="date-input" />
+              </div>
+              <div class="date-input-group">
+                <label class="date-label">To</label>
+                <input type="date" v-model="dateTo" class="date-input" />
+              </div>
+            </div>
             <div class="date-quick-buttons">
               <button @click="setToday" class="quick-btn" :class="{ active: isToday }">Today</button>
               <button @click="setYesterday" class="quick-btn">Yesterday</button>
+              <button @click="setThisWeek" class="quick-btn">This Week</button>
+              <button @click="setThisMonth" class="quick-btn">This Month</button>
               <button @click="clearDateFilter" class="quick-btn">All Time</button>
             </div>
           </div>
@@ -354,7 +365,8 @@ const showDriverSearchResults = ref(false)
 const isCalculating = ref(false) // Prevent circular calculation updates
 
 // Date filter - default to today
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const dateFrom = ref(new Date().toISOString().split('T')[0])
+const dateTo = ref(new Date().toISOString().split('T')[0])
 
 const availableDrivers = computed(() => {
   return companyDrivers.value.map(driver => ({
@@ -771,54 +783,96 @@ function navigateToAdmin() {
 // Date filter helper functions
 const isToday = computed(() => {
   const today = new Date().toISOString().split('T')[0]
-  return selectedDate.value === today
+  return dateFrom.value === today && dateTo.value === today
 })
 
 function setToday() {
-  selectedDate.value = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
+  dateFrom.value = today
+  dateTo.value = today
 }
 
 function setYesterday() {
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
-  selectedDate.value = yesterday.toISOString().split('T')[0]
+  const yesterdayStr = yesterday.toISOString().split('T')[0]
+  dateFrom.value = yesterdayStr
+  dateTo.value = yesterdayStr
+}
+
+function setThisWeek() {
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  dateFrom.value = monday.toISOString().split('T')[0]
+  dateTo.value = new Date().toISOString().split('T')[0]
+}
+
+function setThisMonth() {
+  const today = new Date()
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+  dateFrom.value = firstDay.toISOString().split('T')[0]
+  dateTo.value = new Date().toISOString().split('T')[0]
 }
 
 function clearDateFilter() {
-  selectedDate.value = ''
+  dateFrom.value = ''
+  dateTo.value = ''
 }
 
 // Dynamic summary title
 const summaryTitle = computed(() => {
-  if (!selectedDate.value) {
+  if (!dateFrom.value && !dateTo.value) {
     return "All Time Sales"
   }
 
   const today = new Date().toISOString().split('T')[0]
-  if (selectedDate.value === today) {
+  if (dateFrom.value === today && dateTo.value === today) {
     return "Today's Sales"
   }
 
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
-  if (selectedDate.value === yesterday.toISOString().split('T')[0]) {
+  const yesterdayStr = yesterday.toISOString().split('T')[0]
+  if (dateFrom.value === yesterdayStr && dateTo.value === yesterdayStr) {
     return "Yesterday's Sales"
   }
 
-  // Format selected date
-  const date = new Date(selectedDate.value + 'T00:00:00')
-  return `Sales for ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  // Format date range
+  if (dateFrom.value && dateTo.value) {
+    const from = new Date(dateFrom.value + 'T00:00:00')
+    const to = new Date(dateTo.value + 'T00:00:00')
+    if (dateFrom.value === dateTo.value) {
+      return `Sales for ${from.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    }
+    return `Sales: ${from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${to.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  }
+
+  return "Sales"
 })
 
 const filteredTransactions = computed(() => {
   let filtered = transactions.value
 
-  // Filter by date if selected
-  if (selectedDate.value) {
-    const selectedDateString = new Date(selectedDate.value + 'T00:00:00').toDateString()
+  // Filter by date range if selected
+  if (dateFrom.value || dateTo.value) {
     filtered = filtered.filter(t => {
-      const transactionDate = new Date(t.createdAt).toDateString()
-      return transactionDate === selectedDateString
+      const transactionDate = new Date(t.createdAt)
+      transactionDate.setHours(0, 0, 0, 0)
+
+      if (dateFrom.value && dateTo.value) {
+        const from = new Date(dateFrom.value + 'T00:00:00')
+        const to = new Date(dateTo.value + 'T23:59:59')
+        return transactionDate >= from && transactionDate <= to
+      } else if (dateFrom.value) {
+        const from = new Date(dateFrom.value + 'T00:00:00')
+        return transactionDate >= from
+      } else if (dateTo.value) {
+        const to = new Date(dateTo.value + 'T23:59:59')
+        return transactionDate <= to
+      }
+      return true
     })
   }
 
@@ -847,15 +901,8 @@ const tableColumns = computed(() => [
 ])
 
 const todaySummary = computed(() => {
-  // Use selected date or today
-  const targetDate = selectedDate.value
-    ? new Date(selectedDate.value + 'T00:00:00').toDateString()
-    : new Date().toDateString()
-
-  const dateTransactions = transactions.value.filter(t => {
-    const transactionDate = new Date(t.createdAt).toDateString()
-    return transactionDate === targetDate
-  })
+  // Use filteredTransactions for summary (respects date range)
+  const dateTransactions = filteredTransactions.value
 
   return {
     companies: new Set(dateTransactions.map(t => t.company)).size,
@@ -937,7 +984,7 @@ const todaySummary = computed(() => {
 }
 
 .greeting {
-  font-size: 1.875rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #111827;
   margin: 0;
@@ -1014,9 +1061,11 @@ const todaySummary = computed(() => {
 .summary-item {
   background: white;
   width: 48%;
-  border-radius: 1rem;
-  padding: 1.25rem 1rem;
-  text-align: center;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid #f0f0f0;
   transition: all 0.2s ease;
@@ -1037,33 +1086,35 @@ const todaySummary = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
   background: linear-gradient(135deg, #FFC800 0%, #DD1D21 100%);
-  margin: 0 auto 0.75rem;
+  flex-shrink: 0;
 }
 
 .summary-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
   color: white;
 }
 
 .summary-item .number {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   color: #111827;
+  line-height: 1.2;
 }
 
 .summary-item .label {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .summary-info {
@@ -1092,6 +1143,26 @@ const todaySummary = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.date-range-inputs {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.date-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .date-input {
@@ -1145,22 +1216,25 @@ const todaySummary = computed(() => {
 
 @media (min-width: 640px) {
   .date-filter-controls {
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .date-input {
+  .date-range-inputs {
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .date-input-group {
     flex: 1;
-    max-width: 300px;
   }
 
   .date-quick-buttons {
-    flex: 1;
-    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .quick-btn {
-    flex: 0;
+    flex: 0 1 auto;
   }
 }
 
@@ -1883,7 +1957,7 @@ const todaySummary = computed(() => {
 
 @media (max-width: 480px) {
   .greeting {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   .summary-item .number {

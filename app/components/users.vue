@@ -1,26 +1,19 @@
 <template>
   <div>
     <div class="container">
-      <h1>User Management</h1>
+
       <p class="subtitle">Manage admin and attendant accounts</p>
 
       <!-- Add New User Form -->
-      <CreateAccount 
-        title="Add New User" 
-        @account-created="handleAccountCreated"
-      />
+      <CreateAccount title="Add New User" @account-created="handleAccountCreated" />
 
       <!-- Users List -->
       <section class="card">
         <h2>Existing Users</h2>
-        
+
         <!-- Search Bar -->
         <div class="search-bar">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Search by email or name..."
-          />
+          <input v-model="searchQuery" type="text" placeholder="Search by email or name..." />
         </div>
 
         <!-- Users Table -->
@@ -28,12 +21,8 @@
           <span class="spinner"></span>
           <p>Loading users...</p>
         </div>
-        
-        <ResponsiveTable
-          v-else
-          :columns="userColumns"
-          :items="filteredUsers"
-          empty-message="No users found">
+
+        <ResponsiveTable v-else :columns="userColumns" :items="filteredUsers" empty-message="No users found">
           <template #cell-role="{ item }">
             <span class="badge" :class="item.role">{{ item.role }}</span>
           </template>
@@ -41,12 +30,9 @@
             {{ formatDate(item.createdAt) }}
           </template>
           <template #row-actions="{ item }">
-            <button 
-              @click="handleDeleteUser(item)" 
-              class="btn-delete"
+            <button @click="handleDeleteUser(item)" class="btn-delete"
               :disabled="item.id === currentUserId || item.role === 'admin' || !isAdmin"
-              :title="item.role === 'admin' ? 'Cannot delete admin accounts' : !isAdmin ? 'Only admins can delete' : 'Delete user'"
-            >
+              :title="item.role === 'admin' ? 'Cannot delete admin accounts' : !isAdmin ? 'Only admins can delete' : 'Delete user'">
               Delete
             </button>
           </template>
@@ -86,8 +72,8 @@ const isAdmin = computed(() => currentUserRole.value === 'admin');
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value;
   const query = searchQuery.value.toLowerCase();
-  return users.value.filter(u => 
-    u.email.toLowerCase().includes(query) || 
+  return users.value.filter(u =>
+    u.email.toLowerCase().includes(query) ||
     u.displayName.toLowerCase().includes(query)
   );
 });
@@ -144,14 +130,14 @@ async function handleDeleteUser(user) {
   try {
     const userDoc = doc($db, 'users', user.id);
     await deleteDoc(userDoc);
-    
+
     // Log the deletion
     await logAction('user_deleted', {
       targetUserId: user.id,
       targetUserEmail: user.email,
       targetUserRole: user.role
     });
-    
+
     success('User deleted successfully');
     await fetchUsers();
   } catch (err) {
@@ -163,10 +149,10 @@ async function handleDeleteUser(user) {
 function formatDate(timestamp) {
   if (!timestamp) return 'N/A';
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   });
 }
 
@@ -177,8 +163,9 @@ onMounted(() => {
 
 <style scoped>
 .container {
-  width:100%;
+  width: 100%;
 }
+
 .subtitle {
   color: #6b7280;
   margin-top: -8px;
@@ -190,7 +177,7 @@ onMounted(() => {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card.card-restricted {
@@ -379,14 +366,16 @@ onMounted(() => {
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {

@@ -3,25 +3,24 @@
     <div v-if="loadError" class="error-state">
       <strong>Error:</strong> {{ loadError }}
     </div>
-    
+
     <div v-if="isLoading" class="loading-state">
       <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
-    
+
     <template v-else>
       <!-- Header -->
-        <div class="inventory-card">
-          <h1 class="text-3xl font-bold tracking-tight mb-2">Inventory Items</h1>
-          <p class="text-muted-foreground">Manage sellable items and their units</p>
-        
+      <div class="inventory-card">
+        <p class="text-muted-foreground">Manage sellable items and their units</p>
+
         <button class="btn" @click="openAddItem">
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           Add Item
         </button>
-    </div>
+      </div>
 
       <!-- Add/Edit Item Modal -->
       <div v-if="showItemModal" class="modal-backdrop" @click.self="closeItemModal">
@@ -55,7 +54,8 @@
               </div>
               <div class="field">
                 <label>Description - Optional</label>
-                <textarea v-model="itemForm.description" rows="3" placeholder="Additional details about this item"></textarea>
+                <textarea v-model="itemForm.description" rows="3"
+                  placeholder="Additional details about this item"></textarea>
               </div>
             </div>
             <div class="flex gap-3 mt-6 justify-end">
@@ -78,9 +78,7 @@
           <div class="text-sm text-muted-foreground">{{ items.length }} items</div>
         </div>
 
-        <ResponsiveTable 
-          :columns="itemColumns" 
-          :items="items"
+        <ResponsiveTable :columns="itemColumns" :items="items"
           empty-message="No items yet. Click 'Add Item' to create your first item.">
           <template #cell-name="{ item }">
             <div class="item-cell">
