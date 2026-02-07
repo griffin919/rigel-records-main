@@ -12,7 +12,6 @@
     <template v-else>
       <!-- Header -->
       <div class="mb-6">
-        <h1 class="text-3xl font-bold tracking-tight mb-2">Entry Reports</h1>
         <p class="text-muted-foreground">View and analyze fuel transaction reports</p>
       </div>
 
@@ -374,10 +373,10 @@ function exportCSV(rows, filename) {
 /* Filters Card */
 .filters-card {
   background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  padding: 1.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
 }
@@ -390,21 +389,21 @@ function exportCSV(rows, filename) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .filters-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: #111827;
-  margin: 0 0 0.25rem 0;
+  margin: 0;
   letter-spacing: -0.025em;
 }
 
 .filters-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
   margin: 0;
   font-weight: 400;
@@ -413,15 +412,15 @@ function exportCSV(rows, filename) {
 /* Filters Grid */
 .filters-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .date-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .filter-field {
@@ -430,25 +429,26 @@ function exportCSV(rows, filename) {
 }
 
 .filter-field label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
   letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 .filter-field input,
 .filter-field select {
   width: 100%;
-  height: 2.75rem;
-  padding: 0.625rem 1rem;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 0.625rem;
-  font-size: 0.9375rem;
+  height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
   color: #111827;
   background: white;
   transition: all 0.2s ease;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .filter-field input:focus,
@@ -467,7 +467,7 @@ function exportCSV(rows, filename) {
 /* Filter Actions */
 .filters-actions {
   display: flex;
-  gap: 5px;
+  gap: 0.5rem;
   margin: 0px;
 }
 
@@ -475,9 +475,10 @@ function exportCSV(rows, filename) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.6rem 1.3rem;
-  border-radius: 0.625rem;
-  font-size: 0.9375rem;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid #e5e7eb;
   cursor: pointer;
@@ -488,8 +489,8 @@ function exportCSV(rows, filename) {
 }
 
 .filter-btn svg {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1rem;
+  height: 1rem;
   flex-shrink: 0;
 }
 
@@ -571,43 +572,59 @@ function exportCSV(rows, filename) {
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .filters-card {
-    padding: 1.25rem;
+    padding: 0.75rem;
   }
 
   .filters-header {
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.5rem;
   }
 
   .filters-title {
-    font-size: 1.125rem;
+    font-size: 0.875rem;
+  }
+
+  .filters-subtitle {
+    font-size: 0.6875rem;
   }
 
   .filters-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .date-fields {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.375rem;
+  }
+
+  .filter-field label {
+    font-size: 0.6875rem;
+    margin-bottom: 0.1875rem;
   }
 
   .filter-field input,
   .filter-field select {
-    height: 3rem;
-    font-size: 1rem;
+    height: 2rem;
+    font-size: 0.8125rem;
+    padding: 0.375rem 0.5rem;
   }
 
   .filters-actions {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 0.375rem;
   }
 
   .filter-btn {
     width: 100%;
     min-width: unset;
-    padding: 0.875rem 1.25rem;
-    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .filter-btn svg {
+    width: 0.875rem;
+    height: 0.875rem;
   }
 }
 

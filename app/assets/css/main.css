@@ -34,7 +34,7 @@ body {
   -webkit-font-smoothing: antialiased;
   margin: 0;
   padding: 0;
-  width:100%;
+  width: 100%;
 }
 
 /* Layout */
@@ -46,9 +46,11 @@ body {
 
 /* LOGIN PAGE LOGO */
 .logo-large {
-  width: 80px;          /* adjust to the exact size you want */
+  width: 80px;
+  /* adjust to the exact size you want */
   height: 80px;
-  margin: 0 auto 1rem;  /* center + spacing */
+  margin: 0 auto 1rem;
+  /* center + spacing */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,7 +71,8 @@ body {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #FFC800, #DD1D21);
-  overflow: hidden;        /* ensures icon stays inside */
+  overflow: hidden;
+  /* ensures icon stays inside */
 }
 
 .logo-icon img {
@@ -169,15 +172,19 @@ body {
   flex: 1;
   padding: 2rem;
   display: flex;
-  flex-direction: column; /* stack cards vertically */
-  gap: 1.5rem;
-  width: 100%; /* ensure full width */
+  flex-direction: column;
+  /* stack cards vertically */
+  /* gap: 1.5rem; */
+  width: 100%;
+  /* ensure full width */
 }
 
 /* Cards */
 .card {
-  width: 100%;       /* full width inside the container */
-  max-width: none;   /* remove any inherited max-width */
+  width: 100%;
+  /* full width inside the container */
+  max-width: none;
+  /* remove any inherited max-width */
   border-radius: 0.5rem;
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
@@ -185,9 +192,11 @@ body {
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
   padding: 1.5rem;
 }
+
 /* Form elements */
 .grid {
-  display: block; /* or flex-column */
+  display: block;
+  /* or flex-column */
   gap: 1rem;
 }
 
@@ -759,22 +768,22 @@ button.btn {
     font-size: 0.8125rem;
     padding: 0.5rem 1rem;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .form-actions .btn {
     width: 100%;
   }
-  
+
   .floating-btn {
     bottom: 1.5rem;
     right: 1.5rem;
     width: 3rem;
     height: 3rem;
   }
-  
+
   .floating-btn-left {
     bottom: 1.5rem;
     left: 1.5rem;
@@ -825,7 +834,7 @@ button.btn {
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   }
 
   /* Make all cells stack vertically */
@@ -854,6 +863,7 @@ button.btn {
     margin-top: 0.5rem;
   }
 }
+
 /* Loading state */
 .loading-state {
   display: flex;
@@ -880,10 +890,13 @@ button.btn {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.6;
     transform: scale(0.95);
@@ -985,7 +998,7 @@ button.btn {
     background: #fff;
     padding: 1rem;
     border-radius: 0.5rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   }
 
   /* Make each cell full-width row */
@@ -1014,6 +1027,7 @@ button.btn {
     margin-top: 0.5rem;
   }
 }
+
 /* Error state */
 .error-state {
   background: #fee2e2;
@@ -1065,7 +1079,7 @@ button.btn {
 /* Apply Filters Button — Blue Gradient */
 .btn.apply {
   background: linear-gradient(to right, #3b82f6, #2563eb, #1d4ed8);
-   display: flex;
+  display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -1077,7 +1091,7 @@ button.btn {
 /* Reset Button — Red Gradient */
 .btn.reset {
   background: linear-gradient(to right, #f87171, #ef4444, #dc2626);
-   display: flex;
+  display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -1089,7 +1103,7 @@ button.btn {
 /* Download Button — Purple Gradient */
 .btn.download {
   background: linear-gradient(to right, #a855f7, #9333ea, #7e22ce);
-   display: flex;
+  display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -1109,12 +1123,15 @@ button.btn {
   height: 1rem;
   flex-shrink: 0;
 }
+
 .button-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px; /* this adds space between the buttons */
+  gap: 12px;
+  /* this adds space between the buttons */
   margin-top: 1rem;
 }
+
 /* Responsive Table (Div-based) */
 .responsive-table {
   display: flex;
@@ -1135,7 +1152,7 @@ button.btn {
 }
 
 .table-row:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border-color: hsl(var(--accent) / 0.3);
 }
 
@@ -1180,6 +1197,7 @@ button.btn {
 /* Keep old table styles for backward compatibility */
 /* Attendant page mobile view  */
 @media (max-width: 768px) {
+
   /* Remove table header */
   .mobile-view .table thead {
     display: none;
@@ -1192,7 +1210,7 @@ button.btn {
     margin-bottom: 1rem;
     padding: 1rem;
     border-radius: 0.6rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   }
 
   /* Cells become label + value rows */
@@ -1217,8 +1235,7 @@ button.btn {
   }
 }
 
-.inventory-card{
-   position: relative;
+.inventory-card {
+  position: relative;
   top: -30px;
 }
-

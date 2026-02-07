@@ -103,8 +103,8 @@ onUnmounted(() => {
 
 <style scoped>
 .greeting {
-  font-size: 1.875rem;
-  font-weight: bold;
+  font-size: 1rem;
+  /* font-weight: bold; */
   color: #111827;
   margin: 0;
   text-align: center;
@@ -222,7 +222,7 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .greeting {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   .summary-item .number {

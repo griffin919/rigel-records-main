@@ -3,12 +3,12 @@
     <div v-if="loadError" class="error-state">
       <strong>Error:</strong> {{ loadError }}
     </div>
-    
+
     <div v-if="isLoading" class="loading-state">
       <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
-    
+
     <template v-else-if="currentCompany">
       <!-- Header -->
       <div class="mb-6">
@@ -16,9 +16,8 @@
           <ArrowLeftIcon class="icon" />
           Back to Companies
         </button>
-        <h1 class="text-3xl font-bold tracking-tight mb-2 mt-4">{{ currentCompany.name }}</h1>
         <p class="text-muted-foreground">{{ currentCompany.location }} • {{ currentCompany.phone }}</p>
-        
+
         <!-- Points Badge -->
         <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 border-2 border-yellow-400 rounded-lg">
           <span class="text-lg font-bold text-yellow-600">{{ totalPoints.toFixed(0) }} Loyalty Points</span>
@@ -28,20 +27,12 @@
       <!-- Tabs -->
       <div class="tabs-container">
         <div class="tabs">
-          <button 
-            class="tab" 
-            :class="{ active: activeTab === 'transactions' }"
-            @click="activeTab = 'transactions'"
-          >
+          <button class="tab" :class="{ active: activeTab === 'transactions' }" @click="activeTab = 'transactions'">
             <DocumentTextIcon class="tab-icon" />
             Transactions
             <span class="tab-badge">{{ companyTransactions.length }}</span>
           </button>
-          <button 
-            class="tab" 
-            :class="{ active: activeTab === 'drivers' }"
-            @click="activeTab = 'drivers'"
-          >
+          <button class="tab" :class="{ active: activeTab === 'drivers' }" @click="activeTab = 'drivers'">
             <TruckIcon class="tab-icon" />
             Manage Drivers
             <span class="tab-badge">{{ companyDrivers.length }}</span>
@@ -62,9 +53,7 @@
             </div>
 
             <div v-if="companyTransactions.length" class="responsive-table-wrapper">
-              <ResponsiveTable
-                :columns="transactionColumns"
-                :items="companyTransactions"
+              <ResponsiveTable :columns="transactionColumns" :items="companyTransactions"
                 empty-message="No transactions yet for this company">
                 <template #cell-itemName="{ item }">
                   {{ item.itemName || 'Fuel' }}
@@ -100,11 +89,8 @@
                 </template>
 
                 <template #row-actions="{ item }">
-                  <button 
-                    class="btn-small" 
-                    :class="item.paid ? 'btn-warning' : 'btn-success'"
-                    @click="togglePaidStatus(item)"
-                  >
+                  <button class="btn-small" :class="item.paid ? 'btn-warning' : 'btn-success'"
+                    @click="togglePaidStatus(item)">
                     {{ item.paid ? 'Mark Unpaid' : 'Mark Paid' }}
                   </button>
                 </template>
@@ -122,9 +108,10 @@
         <div v-if="activeTab === 'drivers'" class="tab-panel">
           <section class="card">
             <h2 class="section-title">Manage Drivers</h2>
-            <div style="padding: 1rem; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+            <div
+              style="padding: 1rem; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 0.5rem; margin-bottom: 1.5rem;">
               <p style="font-size: 0.875rem; color: #92400e; margin: 0;">
-                <strong>ℹ️ How to add drivers:</strong> Navigate to <strong>Settings → Create Account</strong> 
+                <strong>ℹ️ How to add drivers:</strong> Navigate to <strong>Settings → Create Account</strong>
                 and create a new user account with the role "Driver" and assign them to this company.
               </p>
             </div>
@@ -132,13 +119,9 @@
 
           <section class="card">
             <h2 class="section-title">Current Drivers ({{ companyDrivers.length }})</h2>
-            
+
             <div v-if="companyDrivers.length" class="drivers-list">
-              <div 
-                v-for="driver in companyDrivers" 
-                :key="driver.id" 
-                class="driver-card"
-              >
+              <div v-for="driver in companyDrivers" :key="driver.id" class="driver-card">
                 <div class="driver-avatar">
                   <UserIcon class="avatar-icon" />
                 </div>
@@ -153,11 +136,7 @@
                     {{ driver.carNumber }}
                   </div>
                 </div>
-                <button 
-                  class="btn-danger-small" 
-                  @click="removeDriver(driver.id)"
-                  :disabled="isSubmitting"
-                >
+                <button class="btn-danger-small" @click="removeDriver(driver.id)" :disabled="isSubmitting">
                   <TrashIcon class="icon-sm" />
                   Remove
                 </button>
@@ -184,7 +163,7 @@ import { useCompanies } from "~/composables/useCompanies";
 import { useDrivers } from "~/composables/useDrivers";
 import { useNotification } from "~/composables/useNotification";
 import ResponsiveTable from "~/components/ResponsiveTable.vue";
-import { 
+import {
   ArrowLeftIcon,
   DocumentTextIcon,
   TruckIcon,
@@ -251,17 +230,17 @@ onMounted(async () => {
   try {
     transactions.value = (await getTransactions()) || [];
     companies.value = (await getCompanies()) || [];
-    
+
     const companyId = route.params.id;
     currentCompany.value = companies.value.find(c => c.id === companyId);
-    
+
     if (!currentCompany.value) {
       loadError.value = 'Company not found';
       error('Company not found');
       router.push('/admin/companies');
       return;
     }
-    
+
     // Fetch drivers for this company from users collection
     companyDrivers.value = (await getCompanyDrivers(companyId)) || [];
   } catch (err) {
@@ -276,12 +255,12 @@ onMounted(async () => {
 async function togglePaidStatus(transaction) {
   try {
     await updateTransaction(transaction.id, { paid: !transaction.paid });
-    
+
     const index = transactions.value.findIndex(t => t.id === transaction.id);
     if (index > -1) {
       transactions.value[index].paid = !transaction.paid;
     }
-    
+
     success(`Transaction marked as ${!transaction.paid ? 'paid' : 'unpaid'}`);
   } catch (err) {
     console.error(err);
@@ -305,7 +284,7 @@ async function removeDriver(driverId) {
   isSubmitting.value = true;
   try {
     await deleteDriver(driverId);
-    
+
     // Refresh the drivers list
     companyDrivers.value = await getCompanyDrivers(currentCompany.value.id);
 
@@ -459,7 +438,7 @@ async function removeDriver(driverId) {
 }
 
 .driver-card:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .driver-avatar {

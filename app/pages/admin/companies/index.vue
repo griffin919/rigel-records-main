@@ -3,17 +3,16 @@
     <div v-if="loadError" class="error-state">
       <strong>Error:</strong> {{ loadError }}
     </div>
-    
+
     <div v-if="isLoading" class="loading-state">
       <img src="/shell_logo.svg" alt="Loading" class="loading-logo" />
       <p class="loading-text">Loading...</p>
     </div>
-    
+
     <template v-else>
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight mb-2">Companies</h1>
           <p class="text-muted-foreground">Manage your client companies</p>
         </div>
         <button class="btn" @click="openAddCompany">
@@ -42,16 +41,9 @@
               </div>
               <div class="field">
                 <label>Contact phone</label>
-                <input 
-                  v-model="company.phone" 
-                  type="tel"
-                  placeholder="0241234567"
-                  pattern="^(0|\+?233)?[2-5][0-9]{8}$"
-                  title="Enter a valid Ghana phone number (e.g., 0241234567)"
-                  required 
-                  @blur="validatePhone"
-                  :class="{ 'error-field': phoneError }"
-                />
+                <input v-model="company.phone" type="tel" placeholder="0241234567" pattern="^(0|\+?233)?[2-5][0-9]{8}$"
+                  title="Enter a valid Ghana phone number (e.g., 0241234567)" required @blur="validatePhone"
+                  :class="{ 'error-field': phoneError }" />
                 <small v-if="phoneError" class="error-text">{{ phoneError }}</small>
               </div>
             </div>
@@ -72,10 +64,7 @@
       <section>
         <h3 class="text-xl font-semibold mb-4">All Companies ({{ companies.length }})</h3>
 
-        <ResponsiveTable
-          :columns="companyColumns"
-          :items="companies"
-          empty-message="No companies found">
+        <ResponsiveTable :columns="companyColumns" :items="companies" empty-message="No companies found">
           <template #cell-totalPoints="{ item }">
             <span class="font-bold text-yellow-600">{{ item.totalPoints || 0 }} pts</span>
           </template>
@@ -137,7 +126,7 @@ onMounted(async () => {
   try {
     transactions.value = (await getTransactions()) || []
     companies.value = (await getCompanies()) || []
-    
+
     // Calculate total points for each company
     companies.value = companies.value.map(company => {
       const companyTransactions = transactions.value.filter(t => t.companyId === company.id)
